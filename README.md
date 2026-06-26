@@ -1,145 +1,180 @@
-**English** | [中文](README.zh.md) | [Landing Page](docs/index.html#en)
+[English](README.en.md) | **中文** | [项目主页](website/index.html)
 
 # paper-wiki
 
-A **Claude Code plugin** for building an **LLM Wiki** — a structured,
-reverse-linked knowledge base that Claude *actively compiles* from your source
-PDFs / slides, rather than retrieving chunks at query time (RAG).
+把一堆论文或课程材料丢给 Claude，让它逐页读完、写成带引用的笔记、交叉综合出概念图谱——
+不是 RAG 那种"查到再拼"，而是**先编译、后查询**的 LLM Wiki。
 
-It packages a battle-tested workflow proven across a multi-round research-paper
-wiki and a course exam-revision wiki: **read every source page-by-page (remote-GPU
-OCR) → write faithful, cited, no-hallucination notes (one sub-agent per source) →
-synthesize cross-source concepts → adversarially review → keep the whole graph
-reverse-linked and consistent.**
+## LLM Wiki 和 RAG 有什么不同
 
-Two variants out of the box:
-- **research** — papers → `papers/` → `concepts/` → `gaps/` (novelty analysis,
-  arXiv search, novelty verification).
-- **course** — lecture slides / labs / assignments → `lectures/` + `practice/` →
-  `topics/` → optional `exam-scope.md` spine (exam revision).
+RAG 每次提问都临时检索文本片段再拼答案，质量取决于切分和召回；LLM Wiki 反过来——
+Claude **事先把每篇源文献从头读到尾**（包括附录），写成结构化笔记并标注出处，
+再跨源综合出概念条目和研究空白。编译好的 wiki 本身就是产出，跨会话可用，
+用 Obsidian 打开就是一张知识图谱。阅读成本只付一次，之后随便查。
 
-## Install (one command — it's a plugin)
-This repo is a **Claude Code plugin + marketplace**. Install it the normal way —
-Claude Code fetches and manages it; **no manual copying into `~/.claude/`, no
-permission prompts**:
+## 两种变体，开箱即用
+
+| | **research**（科研） | **course**（课程） |
+|---|---|---|
+| 源材料 | 论文（arXiv / 网页） | 讲义 / 实验 / 作业 |
+| 主笔记层 | `wiki/papers/` | `wiki/lectures/` + `wiki/practice/` |
+| 综合层 | `wiki/concepts/` | `wiki/topics/` |
+| 特色功能 | `wiki/gaps/`（新颖性分析） | `wiki/exam-scope.md`（考试大纲骨架） |
+| 外部检索 | 有（`/wiki-search-latest`、`/wiki-verify-novelty`） | 无 |
+
+research 适合文献调研和 novelty gap 分析；course 适合复习备考，把几十份讲义压缩成可查的知识库。
+
+## 安装
+
+paper-wiki 是 Claude Code plugin，两条命令装好，不用手动往 `~/.claude/` 里复制任何东西：
+
 ```
 /plugin marketplace add u7079256/paper-wiki
 /plugin install paper-wiki@paper-wiki
 ```
-That registers the `/paper-wiki:*` commands, the sub-agents, and the skill in every
-session. Update later with `/plugin marketplace update paper-wiki`; manage via `/plugin`.
 
-> **SSH host-key error?** The plugin system clones via SSH. If you see
-> `No ED25519 host key is known for github.com`, run once:
+装完后所有 `/paper-wiki:wiki-*` 命令全局可用。后续更新：`/plugin marketplace update paper-wiki`。
+
+> **遇到 SSH host-key 报错？** plugin 安装走的是 SSH 克隆。如果报
+> `No ED25519 host key is known for github.com`，执行一次：
 > ```
 > ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
 > ```
-> then retry the install.
+> 然后重新执行上面的安装命令即可。
 
-> Don't want a plugin? You can still `git clone` this repo and run the bootstrap
-> below directly — bootstrapped projects are self-contained and don't need the
-> plugin installed (their `/wiki-*` commands live in the project's own `.claude/`).
+> 不想装 plugin 也行——直接 `git clone` 本仓库，用下面的 bootstrap 脚本创建项目。
+> 创建出来的项目自带 `/wiki-*` 命令，不依赖 plugin。
 
-## Bootstrap a new wiki project
-**Windows PowerShell:**
+## 创建 wiki 项目
+
+bootstrap 脚本会在指定目录生成完整的项目骨架：`raw/` + `wiki/` 两层结构、
+`.claude/{commands,agents}`、OCR 脚本，以及根据变体渲染好的 `CLAUDE.md` / `research.md` / `README.md`。
+
+**Windows PowerShell：**
 ```powershell
 .\scripts\bootstrap_new_wiki.ps1 -NewPath D:\my-wiki -Topic my-topic `
-    -ProjectName "My Wiki" -Variant research      # or -Variant course
+    -ProjectName "My Wiki" -Variant research      # 或 -Variant course
 ```
-> First run of a downloaded `.ps1` blocked? Do once, in this shell:
-> `Unblock-File .\scripts\*.ps1` — or run via
-> `powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap_new_wiki.ps1 ...`
 
-**macOS / Linux:**
+> 下载的 `.ps1` 第一次跑不了？在当前 shell 里执行一次 `Unblock-File .\scripts\*.ps1`，
+> 或者用 `powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap_new_wiki.ps1 ...` 绕过。
+
+**macOS / Linux：**
 ```bash
 bash scripts/bootstrap_new_wiki.sh --path ~/my-wiki --topic my-topic \
-    --name "My Wiki" --variant research            # or --variant course
+    --name "My Wiki" --variant research            # 或 --variant course
 ```
 
-This creates `D:\my-wiki` with `.claude/{commands,agents}`, `scripts/`, the
-`raw/` + `wiki/` two-layer skeleton, and `CLAUDE.md` / `research.md` / `README.md`
-rendered for the variant. Then start Claude Code **in that folder** and run
-`/wiki-init`.
+项目创建完成后，在该目录启动 Claude Code，运行 `/wiki-init` 初始化。
 
-## Try it without a GPU (out-of-box example)
-`examples/QUICKSTART.md` is a ~5-minute walkthrough that needs only Claude Code +
-internet — it ingests one arXiv paper via the **no-OCR path** (Claude WebFetches +
-reads the HTML), compiles a note, and queries it. `examples/sample-research-wiki/`
-shows a finished (illustrative) wiki — paper notes ↔ concept ↔ gap, reverse-linked —
-so you can see the output shape without running anything.
+### 命令作用域：项目 vs 全局
 
-## Where the slash commands live (project vs global — read this)
-Claude Code resolves slash commands and sub-agents from **two scopes**:
-- **Project** — `<project>/.claude/commands/` + `agents/`: available **only inside that project folder**.
-- **Global (personal)** — `~/.claude/commands/` + `~/.claude/agents/`: available in **every session, any path**.
+Claude Code 从两个位置加载命令：
 
-`bootstrap_new_wiki.ps1` installs the commands **per project** (into the new
-project's `.claude/`). So `/wiki-*` work **inside a bootstrapped wiki project and
-nowhere else** — by design (each wiki is self-contained, and the `course` variant
-deliberately ships fewer commands).
+- **项目级** — `<项目>/.claude/commands/`：只在该项目目录内生效。bootstrap 生成的命令属于这一级，
+  以 `/wiki-*` 形式调用（文档和教程里用的都是这个形式）。
+- **全局级** — 装了 plugin 后，命令以 `/paper-wiki:wiki-*` 形式在任何目录可用。
 
-To get the commands **everywhere**, **install the plugin** (see Install above) —
-Claude Code registers them globally as `/paper-wiki:wiki-init`,
-`/paper-wiki:wiki-compile`, … (namespaced), no manual copying. *(Manual alternative,
-not recommended: `cp commands/*.md ~/.claude/commands/` + `cp agents/*.md
-~/.claude/agents/`.)*
+两者是同一套命令，只是命名空间不同。
 
-Note the two ways differ only by name: a **bootstrapped project** exposes the
-commands **un-namespaced** as `/wiki-*` (from its own `.claude/`) — that's what the
-tutorial/docs use; the **plugin** exposes them as `/paper-wiki:wiki-*`. Same commands.
+## 5 分钟快速上手（不需要 GPU）
 
-## Daily use (slash commands, inside a wiki project)
-| command | what it does |
+不用配 OCR、不用远程服务器——靠 Claude WebFetch 直接读论文 HTML，体验完整流程。
+
+1. 创建临时项目：
+   ```powershell
+   .\scripts\bootstrap_new_wiki.ps1 -NewPath D:\demo-wiki -Topic demo `
+       -ProjectName "Demo" -Variant research
+   ```
+
+2. 在新目录启动 Claude Code：
+   ```powershell
+   cd D:\demo-wiki
+   claude
+   ```
+
+3. 让 Claude 导入一篇论文（无 OCR 路径）：
+   ```
+   Import arXiv:1706.03762 the no-OCR way:
+   1. WebFetch https://arxiv.org/abs/1706.03762 to confirm the title/authors.
+   2. WebFetch the HTML full text (try https://ar5iv.org/abs/1706.03762) and save the
+      extracted text to raw/demo/attention-is-all-you-need.md (raw is append-only).
+   3. Then run /wiki-compile.
+   Follow CLAUDE.md: read the whole thing, cite, never invent.
+   ```
+
+4. 查询编译好的 wiki：
+   ```
+   /wiki-ask What is the core contribution and what are the key components?
+   ```
+   回答只基于已编译的笔记，附带引用；wiki 里没有的内容会明确告知"not in wiki"。
+
+导入 2-3 篇同主题论文后再跑 `/wiki-compile`，Claude 就会自动综合出 `wiki/concepts/` 下的概念条目。
+
+> 不想动手也能看效果：`examples/sample-research-wiki/` 是现成的示例 wiki（标注了是演示数据），
+> 展示了双向链接结构——论文笔记、概念条目、研究空白彼此互链。用 Obsidian 打开可以看到图谱。
+
+## 命令速查
+
+| 命令 | 功能 |
 |---|---|
-| `/wiki-init` | one-time: fill topic + seeds (research) / unpack + inventory (course) |
-| `/wiki-ask <q>` | read-only query: answers only from the compiled wiki, cites sources, says "not in wiki" when absent |
-| `/wiki-compile` | read new `raw/` material → write paper/lecture notes → synthesize concepts/topics |
-| `/wiki-search-latest <topic>` | (research) find recent papers to import |
-| `/wiki-critique <file>` | adversarial review: holes, overclaims, wrong formulas |
-| `/wiki-verify-novelty <gap>` | (research) check a claimed gap against prior work |
+| `/wiki-init` | 初始化（仅首次）：填写主题和种子论文（research）/ 解包并清点材料（course） |
+| `/wiki-compile` | 读取 `raw/` 中的新材料，编译笔记，综合概念或主题 |
+| `/wiki-ask <问题>` | 只读查询：仅从已编译的 wiki 中回答，标注出处，wiki 里没有就说没有 |
+| `/wiki-search-latest <主题>` | （research）搜索最新相关论文 |
+| `/wiki-critique <文件>` | 对抗性审查：找漏洞、过度声明、公式错误 |
+| `/wiki-verify-novelty <gap>` | （research）验证声称的研究空白是否真的没人做过 |
 
-> Full command-by-command walkthrough (both variants): **[docs/TUTORIAL.md](docs/TUTORIAL.md)**.
+> 完整的命令教程（research + course 两个变体）见 **[docs/TUTORIAL.md](docs/TUTORIAL.md)**。
 
-## OCR — local or remote GPU (for scanned / figure-heavy PDFs)
-OCR runs on a **GPU (local or remote), never CPU**. Born-digital papers can skip OCR
-(the no-OCR WebFetch path). Full idiot-proof guide: **[docs/OCR-SETUP.md](docs/OCR-SETUP.md)**.
-- **Local GPU:** `conda activate mineru; python scripts/mineru_local_ocr.py`
-- **Remote GPU (your own SSH box):** credentials via env vars, never in the repo:
+## OCR 配置
+
+扫描版 PDF 或图表密集的文献需要 OCR。OCR 在 **GPU 上运行**（本地或远程），不支持纯 CPU。
+born-digital 论文可以跳过 OCR，直接走 WebFetch 路径。
+
+- **本地 GPU：** `conda activate mineru; python scripts/mineru_local_ocr.py`
+- **远程 GPU（你自己的 SSH 机器）：** 凭据走环境变量，绝不写进仓库：
+  ```
+  $env:MINERU_REMOTE_HOST = "<你的 GPU 主机>"
+  $env:MINERU_REMOTE_USER = "<SSH 用户名>"
+  $env:MINERU_REMOTE_PASS = "<密码>"   # 仅存在本地内存，不要提交
+  python scripts/mineru_remote_ocr.py
+  ```
+- **PPTX** 不能直接 OCR，先转 PDF（`soffice --headless --convert-to pdf`）或用 `scripts/extract_pptx.py`（有损）。
+
+> 详细的手把手指南：**[docs/OCR-SETUP.md](docs/OCR-SETUP.md)**。
+
+## 项目结构
+
 ```
-$env:MINERU_REMOTE_HOST = "<your gpu host>"
-$env:MINERU_REMOTE_USER = "<ssh user>"
-$env:MINERU_REMOTE_PASS = "<password>"   # keep in local memory, never commit
-python scripts/mineru_remote_ocr.py
-```
-PPTX isn't read by mineru — convert to PDF first (`soffice --headless --convert-to
-pdf`) or use `scripts/extract_pptx.py` (lossy).
-
-## Security
-- **No credentials in this repo.** Host/user are placeholders; the password is read
-  from an env var and should live only in your local Claude Code memory.
-- `templates/memory/remote-ocr-gpu-server.md.tmpl` is a **placeholder** — fill it in
-  locally and never commit the filled copy. `.gitignore` guards common secret paths.
-
-## What's inside
-```
-.claude-plugin/             plugin.json + marketplace.json (one-command install metadata)
-skills/paper-wiki/SKILL.md  the skill entry (how Claude operates it)
-scripts/                    bootstrap (.ps1 + .sh) + local/remote OCR + pptx + requirements.txt
-commands/  agents/          slash commands + sub-agents
-templates/{research,course} CLAUDE.md / research.md / README.md per variant
-templates/memory/           placeholder memory files
-docs/TUTORIAL.md            command-by-command tutorial (research + course)
-docs/OCR-SETUP.md           local + remote GPU OCR, idiot-proof
-docs/METHODOLOGY.md         the why/how in depth
-docs/GOTCHAS.md             hard-won pitfalls (read before editing scripts)
-docs/llm-wiki.protocol.yaml machine contract (authoritative behavior spec for the LLM)
-examples/QUICKSTART.md      no-GPU out-of-box walkthrough
-examples/sample-research-wiki/  a finished illustrative wiki (see the output shape)
+.claude-plugin/             plugin 元数据（一键安装用）
+skills/paper-wiki/SKILL.md  skill 入口（Claude 的行为说明）
+scripts/                    bootstrap 脚本 + OCR 脚本 + PPTX 提取 + requirements.txt
+commands/                   slash 命令定义
+agents/                     sub-agent 定义（wiki-critic / wiki-searcher / wiki-novelty-verifier）
+templates/{research,course} 各变体的 CLAUDE.md / research.md / README.md 模板
+templates/memory/           占位 memory 文件（GPU 服务器信息等）
+docs/TUTORIAL.md            命令教程（research + course）
+docs/OCR-SETUP.md           OCR 配置指南
+docs/METHODOLOGY.md         方法论详解（为什么这样设计）
+docs/GOTCHAS.md             踩过的坑（改脚本前务必读）
+docs/llm-wiki.protocol.yaml 机器可读的行为规约（LLM 的权威行为定义）
+examples/QUICKSTART.md      无 GPU 快速上手
+examples/sample-research-wiki/  示例 wiki（展示最终产出的结构）
 ```
 
-## License
-MIT — edit the holder name in `LICENSE`.
+## 安全须知
 
-## Credits
-Distilled from real builds: a World-Action-Model research wiki and an Advanced ML
-course exam-revision wiki. The methodology and the gotchas come from those.
+- 本仓库**不含任何凭据**。OCR 脚本里的 host/user 都是占位符，密码从环境变量读取，
+  只放在你本地的 Claude Code memory 里就好。
+- `templates/memory/remote-ocr-gpu-server.md.tmpl` 是**模板文件**——填入实际信息后
+  不要提交。`.gitignore` 已经屏蔽了常见的敏感路径。
+
+## 许可证
+
+MIT — 在 `LICENSE` 文件里改成你的名字即可。
+
+## 致谢
+
+这套工作流在两个实际项目里磨出来的：一个 World-Action-Model 方向的科研文献 wiki，
+一个高级机器学习课程的复习 wiki。方法论和踩坑记录都来自这些实战经验。

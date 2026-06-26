@@ -173,6 +173,8 @@ body {
       <a href="#install" data-lang="en">Install</a>
       <a href="#commands" data-lang="zh">命令</a>
       <a href="#commands" data-lang="en">Commands</a>
+      <a href="#walkthrough" data-lang="zh">场景走读</a>
+      <a href="#walkthrough" data-lang="en">Walkthroughs</a>
       <a href="https://github.com/u7079256/paper-wiki/blob/main/README.md" data-lang="zh">README</a>
       <a href="https://github.com/u7079256/paper-wiki/blob/main/README.en.md" data-lang="en">README</a>
       <a class="gh" href="https://github.com/u7079256/paper-wiki" target="_blank" rel="noopener">
@@ -210,6 +212,9 @@ body {
       </a>
       <a href="https://github.com/u7079256/paper-wiki/blob/main/docs/TUTORIAL.md">
         <span data-lang="zh">📖 命令教程</span><span data-lang="en">📖 Tutorial</span>
+      </a>
+      <a href="https://github.com/u7079256/paper-wiki/blob/main/docs/WALKTHROUGH.md">
+        <span data-lang="zh">🎯 场景走读</span><span data-lang="en">🎯 Walkthroughs</span>
       </a>
     </div>
   </div>
@@ -255,6 +260,28 @@ body {
           <li data-lang="en">Reads every page end-to-end</li><li data-lang="en">Writes cited, structured notes</li><li data-lang="en">Cross-source concept synthesis</li><li data-lang="en">Persistent, reverse-linked graph</li>
         </ul>
       </div>
+    </div>
+  </section>
+
+  <!-- ══ Workflow ══ -->
+  <section class="section" id="workflow">
+    <div data-lang="zh">
+      <p class="section-label">工作流</p>
+      <h2>编译 → 审查 → 发现 → 深入理解</h2>
+      <p class="desc">Scope fence 守住边界（核心聚焦 / 相邻可纳入 / 硬排除），lifecycle 控制节奏（BUILDING → ACTIVE → FROZEN）。</p>
+    </div>
+    <div data-lang="en">
+      <p class="section-label">Workflow</p>
+      <h2>Compile → Critique → Ideate → Understand</h2>
+      <p class="desc">Scope fence guards boundaries (core focus / adjacent OK / exclusions). Lifecycle controls pace (BUILDING → ACTIVE → FROZEN).</p>
+    </div>
+    <div class="code-block">
+      <div class="code-block-header"><span class="code-block-label" data-lang="zh">研究工作流</span><span class="code-block-label" data-lang="en">Research workflow</span></div>
+      <pre><code>/wiki-init → import → /wiki-compile → /wiki-critique → /wiki-ideate
+                              ↓                              ↓
+                        /wiki-search-latest ←── coverage gaps ┘
+                              ↓
+                        /wiki-compile → /teach (deep understanding)</code></pre>
     </div>
   </section>
 
@@ -307,6 +334,7 @@ body {
       <tr><td><code>/wiki-search-latest &lt;主题&gt;</code></td><td>搜索最新相关论文 <span class="tag">research</span></td></tr>
       <tr><td><code>/wiki-critique &lt;文件&gt;</code></td><td>对抗性审查：找漏洞、过度声明、公式错误</td></tr>
       <tr><td><code>/wiki-ideate &lt;gap&gt;</code></td><td>发现未试过的组合 <span class="tag">research</span></td></tr>
+      <tr><td><code>/teach &lt;问题&gt;</code></td><td>查询 + 交互式教学：跨论文对比、gap 状态汇总</td></tr>
     </tbody></table>
     <div class="tip" data-lang="zh"><strong>查询 wiki</strong> 用 <code>/teach &lt;问题&gt;</code>——它会自动读 wiki 笔记、标出处、展开交互式教学，wiki 里没有的内容会明确告知。</div>
     <table class="cmd-table" data-lang="en"><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>
@@ -315,8 +343,71 @@ body {
       <tr><td><code>/wiki-search-latest &lt;topic&gt;</code></td><td>Find recent papers to import <span class="tag">research</span></td></tr>
       <tr><td><code>/wiki-critique &lt;file&gt;</code></td><td>Adversarial review: holes, overclaims, wrong formulas</td></tr>
       <tr><td><code>/wiki-ideate &lt;gap&gt;</code></td><td>Discover untried combinations <span class="tag">research</span></td></tr>
+      <tr><td><code>/teach &lt;question&gt;</code></td><td>Query + interactive teaching: cross-paper tables, gap dashboards</td></tr>
     </tbody></table>
     <div class="tip" data-lang="en"><strong>To query the wiki,</strong> use <code>/teach &lt;question&gt;</code> — it reads wiki notes, cites sources, and teaches interactively. Absent content is explicitly flagged.</div>
+  </section>
+
+  <!-- ══ Walkthroughs ══ -->
+  <section class="section" id="walkthrough">
+    <div data-lang="zh">
+      <p class="section-label">场景走读</p>
+      <h2>三个研究者的完整使用故事</h2>
+      <p class="desc">从创建 wiki 到投稿，每个场景展示具体命令、预期输出和决策点。</p>
+    </div>
+    <div data-lang="en">
+      <p class="section-label">Walkthroughs</p>
+      <h2>Three researchers, three complete journeys</h2>
+      <p class="desc">From wiki creation to paper submission — concrete commands, expected outputs, and decision points.</p>
+    </div>
+    <div class="variant-grid" style="grid-template-columns:1fr 1fr 1fr;">
+      <div class="variant-card research" data-lang="zh">
+        <h3>场景 A</h3>
+        <p class="sub">PhD 生，新方向，8 周</p>
+        <table>
+          <tr><td>重点</td><td>scope fence 延迟填写、ideate 发现方向、reviewer 反馈后重开 wiki</td></tr>
+        </table>
+      </div>
+      <div class="variant-card research" style="--accent-green:#fbbf24" data-lang="zh">
+        <h3>场景 B</h3>
+        <p class="sub">资深研究者，4 周快速验证</p>
+        <table>
+          <tr><td>重点</td><td>Day 1 即 ideate、精准补充、teach 出对比表写 related work</td></tr>
+        </table>
+      </div>
+      <div class="variant-card course" data-lang="zh">
+        <h3>场景 C</h3>
+        <p class="sub">长期维护者，6 周跨论文复用</p>
+        <table>
+          <tr><td>重点</td><td>重开冻结 wiki、更新 scope fence、<code>--Update</code> 更新命令</td></tr>
+        </table>
+      </div>
+      <div class="variant-card research" data-lang="en">
+        <h3>Scenario A</h3>
+        <p class="sub">PhD student, new direction, 8 weeks</p>
+        <table>
+          <tr><td>Focus</td><td>Deferred scope fence, ideate discovers direction, reviewer feedback reopens wiki</td></tr>
+        </table>
+      </div>
+      <div class="variant-card research" style="--accent-green:#fbbf24" data-lang="en">
+        <h3>Scenario B</h3>
+        <p class="sub">Senior researcher, 4-week fast validation</p>
+        <table>
+          <tr><td>Focus</td><td>Day-1 ideate, precise expansion, teach generates comparison tables for writing</td></tr>
+        </table>
+      </div>
+      <div class="variant-card course" data-lang="en">
+        <h3>Scenario C</h3>
+        <p class="sub">Long-term maintainer, 6-week cross-paper reuse</p>
+        <table>
+          <tr><td>Focus</td><td>Reopen frozen wiki, update scope fence, <code>--Update</code> for stale commands</td></tr>
+        </table>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:24px;">
+      <a href="https://github.com/u7079256/paper-wiki/blob/main/docs/WALKTHROUGH.md" style="color:var(--accent);text-decoration:none;font-weight:600;font-size:15px;" data-lang="zh">📖 查看完整走读 →</a>
+      <a href="https://github.com/u7079256/paper-wiki/blob/main/docs/WALKTHROUGH.md" style="color:var(--accent);text-decoration:none;font-weight:600;font-size:15px;" data-lang="en">📖 Read full walkthroughs →</a>
+    </p>
   </section>
 
   <section class="section">
@@ -356,7 +447,8 @@ body {
     <span class="footer-sep"></span><a href="https://github.com/u7079256/paper-wiki">GitHub</a>
     <span class="footer-sep"></span><a href="https://github.com/u7079256/paper-wiki/blob/main/README.md">README</a>
     <span class="footer-sep"></span><a href="https://github.com/u7079256/paper-wiki/blob/main/docs/TUTORIAL.md">命令教程</a>
-    <br>感谢参与内部测试和早期使用的朋友们，方法论和踩坑记录都来自你们的实战反馈。
+    <br>📖 <a href="https://github.com/mattpocock/skills/tree/main/skills/productivity/teach">mattpocock/skills — teach</a>：启发了 wiki + teach 集成
+    <br>感谢参与内部测试和早期使用的朋友们
   </div>
   <div data-lang="en">
     <strong style="color:var(--text-primary)">paper-wiki</strong>
@@ -364,7 +456,8 @@ body {
     <span class="footer-sep"></span><a href="https://github.com/u7079256/paper-wiki">GitHub</a>
     <span class="footer-sep"></span><a href="https://github.com/u7079256/paper-wiki/blob/main/README.en.md">README</a>
     <span class="footer-sep"></span><a href="https://github.com/u7079256/paper-wiki/blob/main/docs/TUTORIAL.md">Tutorial</a>
-    <br>Thanks to the early adopters and internal testers whose real-world feedback shaped the methodology.
+    <br>📖 <a href="https://github.com/mattpocock/skills/tree/main/skills/productivity/teach">mattpocock/skills — teach</a>: inspired the wiki + teach integration
+    <br>Thanks to the early adopters and internal testers
   </div>
 </footer>
 

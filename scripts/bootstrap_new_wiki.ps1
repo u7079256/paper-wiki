@@ -77,13 +77,15 @@ if ($Variant -eq 'research') {
 foreach ($c in $cmds)   { Copy-Item "$SkillRoot\commands\$c.md" "$NewPath\.claude\commands\" -Force }
 foreach ($a in $agents) { Copy-Item "$SkillRoot\agents\$a.md"   "$NewPath\.claude\agents\"   -Force }
 Copy-Item "$SkillRoot\scripts\mineru_remote_ocr.py" "$NewPath\scripts\" -Force
+Copy-Item "$SkillRoot\scripts\mineru_local_ocr.py"  "$NewPath\scripts\" -Force
 Copy-Item "$SkillRoot\scripts\extract_pptx.py"      "$NewPath\scripts\" -Force
 
-# --- bake namespace + topic into the OCR script (host/user/pass stay in env) -
-$ocr = "$NewPath\scripts\mineru_remote_ocr.py"
-$oc  = ReadUtf8 $ocr
-$oc  = $oc -replace '__WIKI_NS__', $ns -replace '__WIKI_TOPIC__', $Topic
-WriteUtf8 $ocr $oc
+# --- bake namespace + topic into the OCR scripts (host/user/pass stay in env) -
+foreach ($f in @("$NewPath\scripts\mineru_remote_ocr.py","$NewPath\scripts\mineru_local_ocr.py")) {
+  $oc = ReadUtf8 $f
+  $oc = $oc -replace '__WIKI_NS__', $ns -replace '__WIKI_TOPIC__', $Topic
+  WriteUtf8 $f $oc
+}
 
 # --- render templates -------------------------------------------------------
 function Render($tmpl, $out) {

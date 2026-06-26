@@ -3,12 +3,15 @@
 Uploads local PDFs to a remote GPU server, runs MinerU OCR serially (one PDF at
 a time), then downloads the Markdown back to raw/<topic>/mineru/ .
 
-CONFIG -- via environment variables (NOTHING SENSITIVE IS HARD-CODED):
-    MINERU_REMOTE_HOST   ssh host / IP of your GPU box        (required)
-    MINERU_REMOTE_USER   ssh user                              (required)
-    MINERU_REMOTE_PASS   ssh password                          (required; keep in
-                         local Claude Code memory only -- NEVER commit it)
-    MINERU_NS            /tmp namespace, default baked at bootstrap (mineru_<ns>_*)
+CONFIG -- via environment variables (NOTHING SENSITIVE IS HARD-CODED).
+You bring YOUR OWN server; nothing here is shared:
+    MINERU_REMOTE_HOST     ssh host / IP of your GPU box        (required)
+    MINERU_REMOTE_USER     ssh user                              (required)
+    MINERU_REMOTE_PASS     ssh password                          (required; keep in
+                           local Claude Code memory only -- NEVER commit it)
+    MINERU_NS              /tmp namespace, default baked at bootstrap (mineru_<ns>_*)
+    MINERU_REMOTE_ACTIVATE shell line to enter the mineru env    (optional; override
+                           if your conda path / env name differ)
 
 Usage (PowerShell):
     $env:MINERU_REMOTE_HOST = "1.2.3.4"
@@ -20,10 +23,12 @@ Usage (PowerShell):
 (non-recursive -- see GOTCHA below). After the run, OCR'd Markdown lands in
 raw/<topic>/mineru/ and you can run /wiki-compile .
 
-WHY REMOTE-ONLY
-    Local CPU OCR is banned: 5-15 min/PDF vs ~30 s on GPU, plus PaddleOCR quality
-    drift that pollutes wiki consistency. Build the `mineru` conda env once on the
-    server and reuse it across projects -- do NOT reinstall per project.
+WHY A GPU (local or remote), NEVER CPU
+    CPU OCR is banned: 5-15 min/PDF vs ~30 s on GPU, plus PaddleOCR quality drift
+    that pollutes wiki consistency. This script uses a REMOTE GPU over SSH (your own
+    box). Have a LOCAL NVIDIA GPU instead? use scripts/mineru_local_ocr.py. Build the
+    `mineru` conda env once on the server and reuse it across projects -- do NOT
+    reinstall per project. Full setup: docs/OCR-SETUP.md.
 
 HARD-WON FIXES BAKED IN (do not remove -- each cost hours)
     1. `-b pipeline` backend -- the default hybrid auto-engine routes through
@@ -68,6 +73,10 @@ USER = os.environ.get("MINERU_REMOTE_USER", "").strip()
 PASS = os.environ.get("MINERU_REMOTE_PASS", "")
 # Per-project namespace, baked by bootstrap_new_wiki.ps1; overridable via env.
 NS = os.environ.get("MINERU_NS", "__WIKI_NS__")
+# How to enter the mineru env on YOUR server (override if conda path / env name differ).
+ACTIVATE = os.environ.get(
+    "MINERU_REMOTE_ACTIVATE",
+    "source ~/miniconda3/etc/profile.d/conda.sh && conda activate mineru")
 
 REMOTE_IN, REMOTE_OUT = f"/tmp/mineru_{NS}_in", f"/tmp/mineru_{NS}_out"
 REMOTE_LOG = f"/tmp/mineru_{NS}.log"
@@ -189,7 +198,7 @@ def main():
         log(f"  uploaded [{i}/{len(pdfs)}] {os.path.basename(p)}")
 
     driver = f"""#!/bin/bash
-source ~/miniconda3/etc/profile.d/conda.sh && conda activate mineru
+{ACTIVATE}
 echo "=== start $(date) ==="
 for pdf in {REMOTE_IN}/*.pdf; do
   name=$(basename "$pdf" .pdf)

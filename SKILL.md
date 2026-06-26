@@ -51,16 +51,17 @@ inventory the materials (course).
 2. **No hallucination.** Every sentence in a note must trace to something actually
    read (cite slide page / OCR line). If a source isn't in `raw/`, don't write it
    from memory. One agent per source; read the whole thing incl. appendix.
-3. **OCR runs on a remote GPU only** (config via env vars; password stays in local
-   memory, never in the repo). See `templates/.../CLAUDE.md` "远程 OCR 入库管线".
+3. **OCR runs on a GPU — local or remote, never CPU** (remote: config via env vars,
+   password stays in local memory, never in the repo). Guide: `docs/OCR-SETUP.md`.
 4. **Reverse links** (`[[id]]`, Obsidian-style) connect every note; lint for
    orphans, dangling links, and cross-source contradictions.
 5. **Divide and conquer.** Fan out one sub-agent per source to read + write in
    parallel; then synthesize concepts/topics; then adversarially `/wiki-critique`.
 
 ## What's in this skill
-- `scripts/` — `bootstrap_new_wiki.ps1`, `mineru_remote_ocr.py` (env-driven,
-  namespaced), `extract_pptx.py` (PPTX fallback).
+- `scripts/` — `bootstrap_new_wiki.ps1`, `mineru_local_ocr.py` (local GPU),
+  `mineru_remote_ocr.py` (your own SSH GPU box; env-driven, namespaced),
+  `extract_pptx.py` (PPTX fallback). OCR setup: `docs/OCR-SETUP.md`.
 - `commands/` — the slash commands (`/wiki-init`, `/wiki-compile`, `/wiki-ask`,
   `/wiki-search-latest`, `/wiki-critique`, `/wiki-verify-novelty`).
 - `agents/` — sub-agents (`wiki-searcher`, `wiki-critic`, `wiki-novelty-verifier`).

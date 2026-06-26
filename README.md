@@ -78,17 +78,19 @@ global) as above.
 | `/wiki-critique <file>` | adversarial review: holes, overclaims, wrong formulas |
 | `/wiki-verify-novelty <gap>` | (research) check a claimed gap against prior work |
 
-## Remote OCR (required for PDFs)
-OCR runs on a remote GPU (local CPU OCR is banned for speed + consistency).
-Config is **environment-variable driven so no credentials live in the repo**:
+## OCR — local or remote GPU (for scanned / figure-heavy PDFs)
+OCR runs on a **GPU (local or remote), never CPU**. Born-digital papers can skip OCR
+(the no-OCR WebFetch path). Full idiot-proof guide: **[docs/OCR-SETUP.md](docs/OCR-SETUP.md)**.
+- **Local GPU:** `conda activate mineru; python scripts/mineru_local_ocr.py`
+- **Remote GPU (your own SSH box):** credentials via env vars, never in the repo:
 ```
 $env:MINERU_REMOTE_HOST = "<your gpu host>"
 $env:MINERU_REMOTE_USER = "<ssh user>"
 $env:MINERU_REMOTE_PASS = "<password>"   # keep in local memory, never commit
-python scripts/mineru_remote_ocr.py [input_dir]
+python scripts/mineru_remote_ocr.py
 ```
-PPTX is not read by mineru — convert to PDF on the server
-(`soffice --headless --convert-to pdf`) or use `scripts/extract_pptx.py` (lossy).
+PPTX isn't read by mineru — convert to PDF first (`soffice --headless --convert-to
+pdf`) or use `scripts/extract_pptx.py` (lossy).
 
 ## Security
 - **No credentials in this repo.** Host/user are placeholders; the password is read

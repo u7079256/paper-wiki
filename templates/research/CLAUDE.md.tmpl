@@ -104,11 +104,13 @@ novelty_verified: false   # 待 wiki-novelty-verifier 验证
 ### 7. 禁止
 ❌ 改 `raw/`(只读)/ ❌ 把 raw 原文复制进 wiki / ❌ 写没读过的 paper(凭记忆编造)/ ❌ 空洞综述套话(每句要有具体出处)。
 
-## 远程 OCR 入库管线
+## GPU OCR 入库管线(本地或远程)
 
-PDF → Markdown 的 OCR **必须在远程 GPU 上跑**,本地禁用(CPU 慢且 PaddleOCR 质量漂移,污染一致性)。
+PDF → Markdown 的 OCR **必须在 GPU 上跑(本地或远程),禁 CPU**(CPU 慢且 PaddleOCR 质量漂移,污染一致性)。详细安装/使用见 skill `docs/OCR-SETUP.md`。**没 GPU?** born-digital(多数 arXiv)可走无 OCR 路径(让我 WebFetch 论文 HTML 直读)。
 
-**配置走环境变量(密码绝不入库)**:
+**本地 GPU**(本机有 NVIDIA 卡):`conda activate mineru` 后 `python scripts/mineru_local_ocr.py [input_dir]`(无 GPU 会拒绝运行,不偷用 CPU)。
+
+**远程 GPU(你自己的服务器)** —— 配置走环境变量(密码绝不入库):
 ```
 $env:MINERU_REMOTE_HOST = "<你的 GPU 服务器 host/IP>"
 $env:MINERU_REMOTE_USER = "<ssh 用户>"
@@ -118,7 +120,7 @@ python scripts/mineru_remote_ocr.py [input_dir]   # 默认 raw/{{TOPIC}}/
 产物落 `raw/{{TOPIC}}/mineru/`。完成后 `/wiki-compile`。本项目 OCR namespace = `mineru_{{NS}}_*`,与其他项目隔离。
 
 ### 🔴 硬规则 / 已知坑
-- ❌ CPU fallback / ❌ 本地跑 mineru / ❌ 换服务器。GPU 占用时脚本干净退出(退出码 4),**不轮询、不 CPU fallback、不 kill 别人进程**。
+- ❌ **CPU OCR**(本地或远程都禁 CPU)。远程 GPU 占用时脚本干净退出(退出码 4),**不轮询、不 CPU fallback、不 kill 别人进程**。
 - 脚本只抓 input_dir **直接子级**的 `*.pdf`(不递归)—— PDF 在子目录时先平铺到一个临时目录再喂。
 - 共享 GPU/conda env 时**两项目别同时跑 OCR**(会互相 rm -rf;namespace 仅隔离 /tmp 路径不隔离 GPU)。
 - **PPTX** mineru 不吃:优先远程 `soffice --headless --convert-to pdf` 转 PDF 再走管线;本地兜底 `scripts/extract_pptx.py`(版式丢失,需 `PYTHONIOENCODING=utf-8`)。

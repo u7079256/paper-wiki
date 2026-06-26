@@ -20,7 +20,7 @@ invariants:
   cite: "attach a source locator (slide page | OCR line | paper section) to each claim"
   whole_source: "read the entire source incl. appendix before writing its note"
   identity_check: "verify downloaded title == expected before compiling; on mismatch stop + report, do not write the note"
-  remote_ocr_only: "PDF->markdown OCR runs on a remote GPU; no local/CPU OCR"
+  gpu_ocr_no_cpu: "OCR runs on a GPU (local: mineru_local_ocr.py | remote: mineru_remote_ocr.py); NEVER CPU. No GPU => use the no-OCR WebFetch path for born-digital docs"
   reverse_links: "every note connected via [[id]]; lint orphans + dangling + contradictions"
   secrets_never_in_repo: "credentials via env vars only; the password lives in local memory, never in any repo"
   no_outward_for_content: "compilation uses only raw/; never web-search for a note's content (research search is a separate, explicit step)"
@@ -79,8 +79,9 @@ fanout:
 
 pipelines:
   ocr:
-    tool: "scripts/mineru_remote_ocr.py"
-    env: [MINERU_REMOTE_HOST, MINERU_REMOTE_USER, MINERU_REMOTE_PASS, MINERU_NS]
+    tools: {local: "scripts/mineru_local_ocr.py (this machine GPU, no SSH)", remote: "scripts/mineru_remote_ocr.py (your own SSH GPU box)"}
+    setup: "docs/OCR-SETUP.md"
+    env_remote: [MINERU_REMOTE_HOST, MINERU_REMOTE_USER, MINERU_REMOTE_PASS, MINERU_NS, MINERU_REMOTE_ACTIVATE]
     namespace: "mineru_<ns>_* (isolates /tmp paths, NOT the GPU)"
     output: "raw/<topic>/mineru/<name>/auto/<name>.md (+ images/)"
     nonrecursive: "processes *.pdf directly under input_dir only; stage flat if PDFs are in subdirs"

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Bootstrap a new LLM-Wiki project from the claude-wiki-builder skill.
+  Bootstrap a new LLM-Wiki project from the paper-wiki skill.
 
 .DESCRIPTION
   Creates a fresh wiki project: copies the slash commands, sub-agents and OCR

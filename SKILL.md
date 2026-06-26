@@ -1,5 +1,5 @@
 ---
-name: wiki-builder
+name: paper-wiki
 description: >-
   Build and operate an "LLM Wiki" — a structured, reverse-linked knowledge base
   that Claude actively COMPILES from source PDFs / slides (research papers OR
@@ -11,7 +11,7 @@ description: >-
   novelty gaps) and "course" (lectures → topics → practice / exam revision).
 ---
 
-# wiki-builder
+# paper-wiki
 
 An **LLM Wiki** is the opposite of RAG: instead of retrieving chunks at query
 time, Claude proactively **reads each source page-by-page and writes** structured,
@@ -35,7 +35,7 @@ battle-tested workflow + scaffolding to build and run one.
 | outward search | yes (`/wiki-search-latest`, `/wiki-verify-novelty`) | no (retired) |
 
 ## Start a new wiki project
-Run the bootstrap (PowerShell; a bash port is trivial to add):
+Run the bootstrap — Windows `.ps1` or macOS/Linux `scripts/bootstrap_new_wiki.sh`:
 ```
 scripts/bootstrap_new_wiki.ps1 -NewPath <abs path> -Topic <kebab-id> `
     -ProjectName "<Name>" -Variant research|course

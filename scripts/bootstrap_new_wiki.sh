@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Bootstrap a new LLM-Wiki project from the claude-wiki-builder skill (macOS/Linux).
+# Bootstrap a new LLM-Wiki project from the paper-wiki skill (macOS/Linux).
 # Mirror of bootstrap_new_wiki.ps1. Templates are read/written as UTF-8.
 #
 # Usage:

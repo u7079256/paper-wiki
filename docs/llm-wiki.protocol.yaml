@@ -1,4 +1,4 @@
-# llm-wiki.protocol — MACHINE CONTRACT for the wiki-builder skill.
+# llm-wiki.protocol — MACHINE CONTRACT for the paper-wiki skill.
 # Audience: the coding LLM operating this skill. Terse, dense, by design;
 # not optimized for human reading. AUTHORITATIVE for behavior: if prose docs
 # (README/METHODOLOGY) and this file disagree, follow this file.

@@ -1,4 +1,4 @@
-# claude-wiki-builder
+# paper-wiki
 
 A reusable **Claude Code skill** for building an **LLM Wiki** — a structured,
 reverse-linked knowledge base that Claude *actively compiles* from your source
@@ -19,16 +19,16 @@ Two variants out of the box:
 ## Install as a skill (optional)
 From **inside the cloned repo** (the GitHub repo is named `paper-wiki` — don't
 hardcode that; these copy the repo's *contents*), copy it into your Claude Code
-skills dir as `wiki-builder` (the `name:` in `SKILL.md`):
+skills dir as `paper-wiki` (the `name:` in `SKILL.md`):
 ```
 # macOS / Linux:
-mkdir -p ~/.claude/skills/wiki-builder && cp -r ./. ~/.claude/skills/wiki-builder/
+mkdir -p ~/.claude/skills/paper-wiki && cp -r ./. ~/.claude/skills/paper-wiki/
 # Windows PowerShell:
-New-Item -Type Directory -Force $HOME\.claude\skills\wiki-builder | Out-Null
-Copy-Item .\* $HOME\.claude\skills\wiki-builder\ -Recurse -Force
+New-Item -Type Directory -Force $HOME\.claude\skills\paper-wiki | Out-Null
+Copy-Item .\* $HOME\.claude\skills\paper-wiki\ -Recurse -Force
 ```
 Claude then discovers it via `SKILL.md`. (Per-project instead: copy into
-`<project>/.claude/skills/wiki-builder/`.) **Installing the skill is optional** —
+`<project>/.claude/skills/paper-wiki/`.) **Installing the skill is optional** —
 you can clone and run the bootstrap below directly without it.
 
 ## Bootstrap a new wiki project
@@ -78,7 +78,7 @@ cp agents/*.md   ~/.claude/agents/
 Caveat: these commands assume a wiki project layout (`raw/`, `wiki/`, `CLAUDE.md`);
 run them in a non-wiki folder and they have nothing to act on.
 
-**Skill ≠ slash commands.** Installing the *skill* (`~/.claude/skills/wiki-builder/`)
+**Skill ≠ slash commands.** Installing the *skill* (`~/.claude/skills/paper-wiki/`)
 makes Claude aware of the methodology + bootstrap, but does **not** register the
 `/wiki-*` slash commands — those only come from `.claude/commands/` (project or
 global) as above.

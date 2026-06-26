@@ -12,8 +12,8 @@ later, only when you have scanned/large PDFs (see `../docs/GOTCHAS.md`).
 From inside the cloned repo, copy it into your skills dir (makes Claude aware of the
 methodology):
 ```
-# Windows:    New-Item -Type Directory -Force $HOME\.claude\skills\wiki-builder | Out-Null; Copy-Item .\* $HOME\.claude\skills\wiki-builder\ -Recurse -Force
-# macOS/Linux: mkdir -p ~/.claude/skills/wiki-builder && cp -r ./. ~/.claude/skills/wiki-builder/
+# Windows:    New-Item -Type Directory -Force $HOME\.claude\skills\paper-wiki | Out-Null; Copy-Item .\* $HOME\.claude\skills\paper-wiki\ -Recurse -Force
+# macOS/Linux: mkdir -p ~/.claude/skills/paper-wiki && cp -r ./. ~/.claude/skills/paper-wiki/
 ```
 
 ## 1. Bootstrap a throwaway research wiki

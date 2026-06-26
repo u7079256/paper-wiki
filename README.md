@@ -1,6 +1,6 @@
 # paper-wiki
 
-A reusable **Claude Code skill** for building an **LLM Wiki** — a structured,
+A **Claude Code plugin** for building an **LLM Wiki** — a structured,
 reverse-linked knowledge base that Claude *actively compiles* from your source
 PDFs / slides, rather than retrieving chunks at query time (RAG).
 
@@ -16,20 +16,20 @@ Two variants out of the box:
 - **course** — lecture slides / labs / assignments → `lectures/` + `practice/` →
   `topics/` → optional `exam-scope.md` spine (exam revision).
 
-## Install as a skill (optional)
-From **inside the cloned repo** (the GitHub repo is named `paper-wiki` — don't
-hardcode that; these copy the repo's *contents*), copy it into your Claude Code
-skills dir as `paper-wiki` (the `name:` in `SKILL.md`):
+## Install (one command — it's a plugin)
+This repo is a **Claude Code plugin + marketplace**. Install it the normal way —
+Claude Code fetches and manages it; **no manual copying into `~/.claude/`, no
+permission prompts**:
 ```
-# macOS / Linux:
-mkdir -p ~/.claude/skills/paper-wiki && cp -r ./. ~/.claude/skills/paper-wiki/
-# Windows PowerShell:
-New-Item -Type Directory -Force $HOME\.claude\skills\paper-wiki | Out-Null
-Copy-Item .\* $HOME\.claude\skills\paper-wiki\ -Recurse -Force
+/plugin marketplace add u7079256/paper-wiki
+/plugin install paper-wiki@paper-wiki
 ```
-Claude then discovers it via `SKILL.md`. (Per-project instead: copy into
-`<project>/.claude/skills/paper-wiki/`.) **Installing the skill is optional** —
-you can clone and run the bootstrap below directly without it.
+That registers the `/paper-wiki:*` commands, the sub-agents, and the skill in every
+session. Update later with `/plugin marketplace update paper-wiki`; manage via `/plugin`.
+
+> Don't want a plugin? You can still `git clone` this repo and run the bootstrap
+> below directly — bootstrapped projects are self-contained and don't need the
+> plugin installed (their `/wiki-*` commands live in the project's own `.claude/`).
 
 ## Bootstrap a new wiki project
 **Windows PowerShell:**
@@ -69,19 +69,15 @@ project's `.claude/`). So `/wiki-*` work **inside a bootstrapped wiki project an
 nowhere else** — by design (each wiki is self-contained, and the `course` variant
 deliberately ships fewer commands).
 
-To use `/wiki-*` **everywhere** without re-bootstrapping, copy them into your
-personal scope once:
-```
-cp commands/*.md ~/.claude/commands/    # /wiki-* in every session, any path
-cp agents/*.md   ~/.claude/agents/
-```
-Caveat: these commands assume a wiki project layout (`raw/`, `wiki/`, `CLAUDE.md`);
-run them in a non-wiki folder and they have nothing to act on.
+To get the commands **everywhere**, **install the plugin** (see Install above) —
+Claude Code registers them globally as `/paper-wiki:wiki-init`,
+`/paper-wiki:wiki-compile`, … (namespaced), no manual copying. *(Manual alternative,
+not recommended: `cp commands/*.md ~/.claude/commands/` + `cp agents/*.md
+~/.claude/agents/`.)*
 
-**Skill ≠ slash commands.** Installing the *skill* (`~/.claude/skills/paper-wiki/`)
-makes Claude aware of the methodology + bootstrap, but does **not** register the
-`/wiki-*` slash commands — those only come from `.claude/commands/` (project or
-global) as above.
+Note the two ways differ only by name: a **bootstrapped project** exposes the
+commands **un-namespaced** as `/wiki-*` (from its own `.claude/`) — that's what the
+tutorial/docs use; the **plugin** exposes them as `/paper-wiki:wiki-*`. Same commands.
 
 ## Daily use (slash commands, inside a wiki project)
 | command | what it does |
@@ -117,7 +113,8 @@ pdf`) or use `scripts/extract_pptx.py` (lossy).
 
 ## What's inside
 ```
-SKILL.md                    the skill entry (how Claude operates it)
+.claude-plugin/             plugin.json + marketplace.json (one-command install metadata)
+skills/paper-wiki/SKILL.md  the skill entry (how Claude operates it)
 scripts/                    bootstrap (.ps1 + .sh) + local/remote OCR + pptx + requirements.txt
 commands/  agents/          slash commands + sub-agents
 templates/{research,course} CLAUDE.md / research.md / README.md per variant

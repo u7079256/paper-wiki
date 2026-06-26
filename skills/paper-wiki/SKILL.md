@@ -59,6 +59,7 @@ inventory the materials (course).
    parallel; then synthesize concepts/topics; then adversarially `/wiki-critique`.
 
 ## What's in this skill
+(Paths are relative to the plugin root, `${CLAUDE_PLUGIN_ROOT}/`.)
 - `scripts/` — `bootstrap_new_wiki.ps1`, `mineru_local_ocr.py` (local GPU),
   `mineru_remote_ocr.py` (your own SSH GPU box; env-driven, namespaced),
   `extract_pptx.py` (PPTX fallback). OCR setup: `docs/OCR-SETUP.md`.
@@ -77,12 +78,13 @@ inventory the materials (course).
 - `docs/TUTORIAL.md` — command-by-command tutorial (research + course).
   `docs/OCR-SETUP.md` — local + remote GPU OCR setup.
 
-## Command scope (slash commands vs skill)
-The `/wiki-*` slash commands resolve from `.claude/commands/` — **per project** (the
-bootstrap installs them there) or **global** (`~/.claude/commands/`). They are **not
-global by default**, and installing this skill does **not** register them. To get
-`/wiki-*` everywhere, copy `commands/` + `agents/` into `~/.claude/`. Details in
-README → "Where the slash commands live".
+## Command scope (two ways the commands appear)
+- **Install the plugin** (`/plugin marketplace add u7079256/paper-wiki` →
+  `/plugin install paper-wiki@paper-wiki`) → commands are global + namespaced as
+  `/paper-wiki:wiki-*`, managed by Claude Code (no manual `~/.claude/` copying).
+- **Bootstrap a project** → commands are project-local + un-namespaced `/wiki-*`
+  (from the project's own `.claude/`). The tutorial/docs use this `/wiki-*` form.
+Same commands either way. Details in README → "Where the slash commands live".
 
 ## Security
 Never commit credentials. The OCR script reads host/user/password from env vars;

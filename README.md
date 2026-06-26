@@ -202,4 +202,5 @@ MIT
 
 ## 🙏 致谢
 
-感谢参与内部测试和早期使用的朋友们，方法论和踩坑记录都来自你们的实战反馈。
+- 📖 [mattpocock/skills — teach](https://github.com/mattpocock/skills/tree/main/skills/productivity/teach)：启发了 wiki + teach 集成的教学方法论
+- 感谢参与内部测试和早期使用的朋友们，方法论和踩坑记录都来自你们的实战反馈

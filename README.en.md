@@ -202,4 +202,5 @@ MIT
 
 ## 🙏 Credits
 
-Thanks to the early adopters and internal testers whose real-world feedback shaped the methodology and the gotchas.
+- 📖 [mattpocock/skills — teach](https://github.com/mattpocock/skills/tree/main/skills/productivity/teach): inspired the wiki + teach integration and pedagogical methodology
+- Thanks to the early adopters and internal testers whose real-world feedback shaped the methodology and the gotchas

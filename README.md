@@ -126,7 +126,8 @@ Claude Code 从两个位置加载命令：
 
 > 查询 wiki 用 `/teach <问题>`——它会自动读 wiki 笔记、标出处、展开交互式教学，wiki 里没有的内容会明确告知。
 
-> 完整的命令教程（research + course 两个变体）见 **[docs/TUTORIAL.md](docs/TUTORIAL.md)**。
+> 完整的命令教程见 **[docs/TUTORIAL.md](docs/TUTORIAL.md)**。
+> 三个真实场景的完整走读（PhD 生 / 资深研究者 / 长期维护者）见 **[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)**。
 
 ## OCR 配置
 

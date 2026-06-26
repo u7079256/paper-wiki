@@ -101,7 +101,8 @@ tutorial/docs use; the **plugin** exposes them as `/paper-wiki:wiki-*`. Same com
 
 > To query the wiki, use `/teach <question>` — it reads wiki notes, cites sources, and teaches interactively. Absent content is explicitly flagged.
 
-> Full command-by-command walkthrough (both variants): **[docs/TUTORIAL.md](docs/TUTORIAL.md)**.
+> Full command-by-command walkthrough: **[docs/TUTORIAL.md](docs/TUTORIAL.md)**.
+> Three scenario walkthroughs (PhD / senior researcher / long-term maintainer): **[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)**.
 
 ## OCR — local or remote GPU (for scanned / figure-heavy PDFs)
 OCR runs on a **GPU (local or remote), never CPU**. Born-digital papers can skip OCR

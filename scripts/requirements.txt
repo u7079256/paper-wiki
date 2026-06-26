@@ -1,0 +1,9 @@
+# Python deps for the OCR ORCHESTRATION scripts (run on the machine you launch
+# them from). This is NOT mineru itself -- install mineru in a conda env per
+# docs/OCR-SETUP.md (it has heavy CUDA pins that don't belong in pip here).
+#
+#   pip install -r scripts/requirements.txt
+#
+# You only need these if you actually use OCR:
+paramiko>=3        # remote OCR (mineru_remote_ocr.py): SSH upload/run/download
+python-pptx>=1.0   # optional: PPTX text fallback (extract_pptx.py)

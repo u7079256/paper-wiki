@@ -16,22 +16,37 @@ Two variants out of the box:
 - **course** — lecture slides / labs / assignments → `lectures/` + `practice/` →
   `topics/` → optional `exam-scope.md` spine (exam revision).
 
-## Install as a skill
-Drop this repo into your Claude Code skills dir:
+## Install as a skill (optional)
+From **inside the cloned repo** (the GitHub repo is named `paper-wiki` — don't
+hardcode that; these copy the repo's *contents*), copy it into your Claude Code
+skills dir as `wiki-builder` (the `name:` in `SKILL.md`):
 ```
-# personal (all projects):
-cp -r claude-wiki-builder ~/.claude/skills/wiki-builder
-# or per-project:
-cp -r claude-wiki-builder <project>/.claude/skills/wiki-builder
+# macOS / Linux:
+mkdir -p ~/.claude/skills/wiki-builder && cp -r ./. ~/.claude/skills/wiki-builder/
+# Windows PowerShell:
+New-Item -Type Directory -Force $HOME\.claude\skills\wiki-builder | Out-Null
+Copy-Item .\* $HOME\.claude\skills\wiki-builder\ -Recurse -Force
 ```
-Claude picks it up via `SKILL.md`. (On Windows, copy the folder into the same
-location.)
+Claude then discovers it via `SKILL.md`. (Per-project instead: copy into
+`<project>/.claude/skills/wiki-builder/`.) **Installing the skill is optional** —
+you can clone and run the bootstrap below directly without it.
 
 ## Bootstrap a new wiki project
+**Windows PowerShell:**
 ```powershell
 .\scripts\bootstrap_new_wiki.ps1 -NewPath D:\my-wiki -Topic my-topic `
     -ProjectName "My Wiki" -Variant research      # or -Variant course
 ```
+> First run of a downloaded `.ps1` blocked? Do once, in this shell:
+> `Unblock-File .\scripts\*.ps1` — or run via
+> `powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap_new_wiki.ps1 ...`
+
+**macOS / Linux:**
+```bash
+bash scripts/bootstrap_new_wiki.sh --path ~/my-wiki --topic my-topic \
+    --name "My Wiki" --variant research            # or --variant course
+```
+
 This creates `D:\my-wiki` with `.claude/{commands,agents}`, `scripts/`, the
 `raw/` + `wiki/` two-layer skeleton, and `CLAUDE.md` / `research.md` / `README.md`
 rendered for the variant. Then start Claude Code **in that folder** and run
@@ -103,7 +118,7 @@ pdf`) or use `scripts/extract_pptx.py` (lossy).
 ## What's inside
 ```
 SKILL.md                    the skill entry (how Claude operates it)
-scripts/                    bootstrap + remote OCR + pptx fallback
+scripts/                    bootstrap (.ps1 + .sh) + local/remote OCR + pptx + requirements.txt
 commands/  agents/          slash commands + sub-agents
 templates/{research,course} CLAUDE.md / research.md / README.md per variant
 templates/memory/           placeholder memory files

@@ -35,8 +35,8 @@ pip install "mineru[core]==3.1.0"
 > driver 580+). Full reasons: [`GOTCHAS.md`](GOTCHAS.md).
 
 > **Script deps** (on the machine that *runs* the scripts, not the GPU server):
-> `pip install paramiko` for remote OCR orchestration; `pip install python-pptx`
-> only if you use the PPTX fallback.
+> `pip install -r scripts/requirements.txt` — i.e. `paramiko` for remote OCR
+> orchestration, plus `python-pptx` if you use the PPTX fallback.
 
 ## 4. Option A — Local GPU (傻瓜式)
 ```

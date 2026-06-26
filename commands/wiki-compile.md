@@ -71,6 +71,9 @@ Append one compile-log line under the progress section; do NOT overwrite other p
   ACTIVE (the user decides; don't change it unilaterally).
 ```
 
+If the Scope fence in `research.md` has empty Adjacent OK and Exclusions sections, print:
+> **Tip:** now that concept themes are visible, consider filling in the scope fence (Adjacent OK + Exclusions) in `research.md` to guide future searches.
+
 ## Hard constraints
 - ❌ Never modify `raw/` (read-only)
 - ❌ Never fabricate content not present in the source

@@ -13,7 +13,7 @@ Read `CLAUDE.md` 顶部 ~15 行。
 
 ## 步骤 1:收集本项目信息(用 AskUserQuestion,不许凭印象编造)
 
-**research 变体**:问 ① 课题一句话 ② 投稿目标 ③ 核心种子文献(每篇:工作名 / 角色 / arXiv ID 或 URL)④ 数据集(可选)⑤ 有没有看似不相关、但其实和本课题有关的领域?(列 2-5 个,每个附理由;可不填)⑥ 有没有明确排除在外的领域?(列 2-5 个,每个附理由;两种类型:(a) 时间淘汰,如 NeRF 被 3DGS 取代;(b) 类别排除,如 motion generation 属于不同输出模态)
+**research 变体**:问 ① 课题一句话 ② 投稿目标 ③ 核心种子文献(每篇:工作名 / 角色 / arXiv ID 或 URL)④ 数据集(可选)⑤（可选，不确定可留空）Are there areas that look off-topic but are actually relevant? Leave blank if unsure — you can fill this in after your first /wiki-compile round when concept themes emerge.（若填:列 2-5 个,每个附理由）⑥（可选，不确定可留空）Are there areas definitely OUT of scope? Leave blank if unsure — easier to answer once you see what the wiki surfaces.（若填:列 2-5 个,每个附理由;两种类型:(a) 时间淘汰/temporal supersession,如 NeRF 被 3DGS 取代;(b) 类别排除/categorical exclusion,如 motion generation 属于不同输出模态）
 **course 变体**:问 ① 这门课是什么(名称 / 性质)② 目的(复习 / 助教 / 学习)③ 材料在哪(常见:项目根目录有个 `*resources*.zip`,或某文件夹)④ (可选)范围由哪份文档界定(如 `Review lecture`)。
 
 ## 步骤 2:把文档落到本项目(先给改动方案,确认后再写)

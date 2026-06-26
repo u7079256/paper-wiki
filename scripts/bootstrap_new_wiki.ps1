@@ -13,27 +13,61 @@
   .tmpl data files and is read/written with explicit .NET UTF-8 (NOT
   Get-Content/Set-Content, which corrupt UTF-8 on a GBK console -- see docs/GOTCHAS.md).
 
-.PARAMETER NewPath      Absolute path of the new project, e.g. D:\my-wiki
+.PARAMETER NewPath      Absolute path of the new project (or existing project when -Update)
 .PARAMETER Topic        kebab-case id; used for raw/<topic>/ and OCR namespace mineru_<ns>_*
 .PARAMETER ProjectName  Human-readable name for titles (default = Topic)
 .PARAMETER Variant      research | course   (default research)
 .PARAMETER SkillRoot    Path to this skill repo (default = parent of this script's dir)
+.PARAMETER Update       Re-copy commands and agents only; skip all creation steps
 
 .EXAMPLE
   .\bootstrap_new_wiki.ps1 -NewPath D:\my-wiki -Topic my-topic -ProjectName "My Wiki"
   .\bootstrap_new_wiki.ps1 -NewPath D:\aml -Topic aml -ProjectName "AML" -Variant course
+  .\bootstrap_new_wiki.ps1 -NewPath D:\my-wiki -Update
 #>
 param(
   [Parameter(Mandatory=$true)][string]$NewPath,
-  [Parameter(Mandatory=$true)][string]$Topic,
-  [string]$ProjectName = $Topic,
+  [string]$Topic,
+  [string]$ProjectName,
   [ValidateSet('research','course')][string]$Variant = 'research',
-  [string]$SkillRoot
+  [string]$SkillRoot,
+  [switch]$Update
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 if (-not $SkillRoot) { $SkillRoot = Split-Path -Parent $PSScriptRoot }
+
+# --- variant-aware command / agent lists (used by both create and update) ----
+if ($Variant -eq 'research') {
+  $cmds   = @('wiki-init','wiki-compile','wiki-search-latest','wiki-critique','wiki-ideate')
+  $agents = @('wiki-searcher','wiki-critic','wiki-ideator')
+} else {
+  $cmds   = @('wiki-init','wiki-compile','wiki-critique')
+  $agents = @('wiki-critic')
+}
+
+# --- update mode: re-copy commands and agents only ----------------------------
+if ($Update) {
+  if (-not (Test-Path "$NewPath\.claude\commands")) {
+    Write-Error "This does not look like a paper-wiki project. Run without -Update to create a new project."
+    exit 1
+  }
+  if (-not (Test-Path "$NewPath\.claude\agents")) {
+    New-Item -ItemType Directory -Force -Path "$NewPath\.claude\agents" | Out-Null
+  }
+  foreach ($c in $cmds)   { Copy-Item "$SkillRoot\commands\$c.md" "$NewPath\.claude\commands\" -Force }
+  foreach ($a in $agents) { Copy-Item "$SkillRoot\agents\$a.md"   "$NewPath\.claude\agents\"   -Force }
+  Write-Host "Updated $($cmds.Count) commands and $($agents.Count) agents from paper-wiki."
+  exit 0
+}
+
+# --- non-update mode: Topic is required --------------------------------------
+if (-not $Topic) {
+  Write-Error "required: -Topic (and -NewPath) when not using -Update"
+  exit 2
+}
+if (-not $ProjectName) { $ProjectName = $Topic }
 $ns   = (($Topic -replace '[^a-zA-Z0-9]+','_').Trim('_')).ToLower()
 $date = Get-Date -Format 'yyyy-MM-dd'
 
@@ -65,15 +99,7 @@ foreach ($gk in @("$NewPath\raw\$Topic\.gitkeep","$NewPath\wiki\notes\.gitkeep")
   if (-not (Test-Path $gk)) { New-Item -ItemType File -Force -Path $gk | Out-Null }
 }
 
-# --- copy commands / agents / scripts (variant-aware subset) ----------------
-if ($Variant -eq 'research') {
-  $cmds   = @('wiki-init','wiki-compile','wiki-search-latest','wiki-critique','wiki-ideate')
-  $agents = @('wiki-searcher','wiki-critic','wiki-ideator')
-} else {
-  # course/exam wikis do not expand outward, so the search/novelty tooling is dropped
-  $cmds   = @('wiki-init','wiki-compile','wiki-critique')
-  $agents = @('wiki-critic')
-}
+# --- copy commands / agents / scripts (arrays already defined above) --------
 foreach ($c in $cmds)   { Copy-Item "$SkillRoot\commands\$c.md" "$NewPath\.claude\commands\" -Force }
 foreach ($a in $agents) { Copy-Item "$SkillRoot\agents\$a.md"   "$NewPath\.claude\agents\"   -Force }
 Copy-Item "$SkillRoot\scripts\mineru_remote_ocr.py" "$NewPath\scripts\" -Force

@@ -1,13 +1,13 @@
 > 🚧 **TODO (delete this block after /wiki-init):** 由 bootstrap 从 paper-wiki 的 **course** 变体生成。
 > 通用规则(raw→wiki 两层、OCR 管线)直接沿用;只需改:① 顶部课程描述 ② 「范围」如何界定(哪份 review/syllabus 文档)③ 配合 research.md 填材料清单。
 
-# Course Wiki — {{PROJECT_NAME}}
+# 课程 Wiki — {{PROJECT_NAME}}
 
-> 这是一个 **LLM Wiki**(Claude Code 逐页读材料、**编译**结构化知识),不是 RAG。
+> 这是 **LLM Wiki**(Claude Code 逐页读材料、**编译**结构化知识),不是 RAG。
 >
 > **本项目是一门课程的知识 / 复习库,不是研究课题。** 把每份 slide / lab / assignment 当作「文献」编译成结构化笔记:每讲一篇 → 跨讲做主题综合。
 >
-> - **范围**:_(可选)由一份 review / syllabus 文档界定(如 `Review lecture.pdf`)—— 编译不超出该范围,out-of-scope 不留存。_ 详见 `wiki/exam-scope.md`(读完范围文档后生成)。
+> - **范围**:_(可选)由一份 review / syllabus 文档界定(如 `Review lecture.pdf`)—— 编译不超出该范围,范围外的不留存。_ 详见 `wiki/exam-scope.md`(读完范围文档后生成)。
 > - **资源优先级**:lecture slide > workshop / lab > assignment。编译精力按此分配。
 > - 详见 `research.md`(进度主线)。
 
@@ -32,12 +32,13 @@
 └── .claude/{commands,agents}/
 ```
 
-> **不预先建空目录** —— `lectures/` `topics/` `practice/` 在产出第一篇时再建。
+> Bootstrap 预建了 `lectures/` `topics/` `practice/` 骨架;其下的子目录(如 `deep-dives/`)在内容积累后再建。
 
 ## 命令(研究专用的已退役)
 
 | 命令 | 作用 |
 |---|---|
+| `/wiki-init` | 初始化:解压 + 盘点材料(仅 bootstrap 后跑一次) |
 | `/wiki-compile` | 把 raw/ 新材料编译成 lecture / topic / practice 笔记 |
 | `/wiki-critique <文件>` | 对抗式查错(公式 / 结论是否写错) |
 
@@ -55,7 +56,7 @@
 ## Claude Code 编译规则(`/wiki-compile`)
 
 ### 1. 扫描 raw/
-列出 `raw/{{TOPIC}}/mineru/` 下 OCR markdown(+ lab 的 ipynb),与 `wiki/lectures/`·`practice/` diff。**先用范围文档 / `exam-scope.md` 判 in-scope**:out-of-scope 不编译进 wiki/(raw 保留 OCR 当归档)。
+列出 `raw/{{TOPIC}}/mineru/` 下 OCR markdown(+ lab 的 ipynb),与 `wiki/lectures/`·`practice/` diff。**先用范围文档 / `exam-scope.md` 判定是否在范围内**:范围外的不编译进 wiki/(raw 保留 OCR 当归档)。
 
 ### 2. lecture 笔记 (`wiki/lectures/<id>.md`)
 > 无 authors / venue / arXiv —— 这是讲义不是论文。
@@ -109,7 +110,7 @@ topics: [[topic-or-lecture]], ...
 ### 6. 反链 / Lint / 禁止
 - 引用用 `[[filename]]`;lecture 列「相关练习」,topic frontmatter 列 `related_lectures`。
 - 矛盾检测(同 topic 多讲矛盾 → 写 `## 易混点`);孤立文件标 `tags: [orphan]`;`compiled_at` 用实际日期。
-- ❌ 改 `raw/` / ❌ 复制 raw 原文进 wiki / ❌ 写没读过的材料 / ❌ 空洞套话(每句要有 slide 出处)/ ❌ 编译 out-of-scope / ❌ lab 无官方答案时编造解法(只整理题目)。
+- ❌ 改 `raw/` / ❌ 复制 raw 原文进 wiki / ❌ 写没读过的材料 / ❌ 空洞套话(每句要有 slide 出处)/ ❌ 编译范围外的材料 / ❌ lab 无官方答案时编造解法(只整理题目)。
 
 ## GPU OCR 入库管线(本地或远程)
 
@@ -127,7 +128,7 @@ python scripts/mineru_remote_ocr.py [input_dir]   # 默认 raw/{{TOPIC}}/
 产物落 `raw/{{TOPIC}}/mineru/`。OCR namespace = `mineru_{{NS}}_*`,与其他项目隔离。
 
 ### 🔴 硬规则 / 已知坑
-- ❌ **CPU OCR**(本地或远程都禁 CPU)。远程 GPU 占用时干净退出(退出码 4),不轮询、不 CPU fallback、不 kill 别人进程。
+- ❌ **CPU OCR**(本地或远程都禁 CPU)。远程 GPU 占用时干净退出(退出码 4),不轮询、不 CPU 兜底、不 kill 别人进程。
 - 脚本只抓 input_dir **直接子级** `*.pdf`(不递归)—— PDF 在 `lecture-slides/` 等子目录时先平铺到临时目录再喂(文件名不重名时无冲突)。
 - **PPTX** mineru 不吃:**优先远程 `soffice --headless --convert-to pdf` 转 PDF 再走同一管线**(质量与其余 slide 一致);本地兜底 `scripts/extract_pptx.py`(版式丢失,需 `PYTHONIOENCODING=utf-8`)。
 - 共享 GPU/conda env 时**两项目别同时跑 OCR**。

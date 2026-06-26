@@ -1,6 +1,6 @@
 ---
 name: wiki-ideator
-description: Grounded research ideator. Discovers untried method-problem combinations from the wiki's own structured knowledge, then does targeted web verification. Replaces the binary novelty-verifier with a constructive exploration loop.
+description: Grounded research ideator. Discovers untried method-problem combinations from the wiki's own structured knowledge, then does targeted web verification via a constructive exploration loop.
 tools: WebSearch, WebFetch, Read, Grep, Glob
 ---
 

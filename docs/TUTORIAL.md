@@ -6,8 +6,8 @@ GPU). OCR install/use: [`OCR-SETUP.md`](OCR-SETUP.md). The why: [`METHODOLOGY.md
 
 ## The loop (one picture)
 ```
-research:  /wiki-init → import → /wiki-compile → /wiki-search-latest → /wiki-compile
-                      → /wiki-critique → /wiki-ideate → /teach
+research:  /wiki-init → import → /wiki-compile → /wiki-ideate → /wiki-search-latest
+                      → /wiki-compile → /wiki-critique → /teach
 course:    /wiki-init (unpack) → OCR → /wiki-compile → /wiki-critique → /teach
 ```
 
@@ -89,12 +89,14 @@ new gaps may surface. The wiki grows in rounds.
   🔴 fixes afterward.
 
 ## A7. `/wiki-ideate` — discover untried combinations
-- **What:** spawns `wiki-ideator` to search web/arXiv/Scholar for prior work
-  overlapping your gap, returning a verdict **confirmed / partial / refuted** + the
-  closest neighbors.
+- **What:** spawns `wiki-ideator` to recombine wiki-internal methods and constraints,
+  generating 2-6 untried-combination hypotheses, each web-verified as tried / partially
+  tried / untried. Output: constraint map, method landscape, hypothesis table, gap
+  refinement suggestions, coverage holes, and a self-assessment.
 - **When:** before investing research time in a gap.
 - **Paste to Claude:** `/wiki-ideate wiki/gaps/my-core-gap.md`
-- **You get:** a verdict + candidate-overlap table + (if partial) the angles still open.
+- **You get:** a structured ideation report mapping what blocks progress, what tools exist
+  in the wiki, and which method-problem combinations nobody has tried yet.
 - **Tip:** it **won't** set `novelty_verified: true` itself — it proposes; you edit.
 
 ## A8. `/teach` — query the wiki / interactive learning

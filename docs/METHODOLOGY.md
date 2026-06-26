@@ -59,12 +59,14 @@ concepts/topics list `related_*` in frontmatter. This turns the wiki into a grap
 `papers/ → concepts/ → gaps/`. The loop:
 ```
 /wiki-search-latest  → confirm imports → remote OCR → /wiki-compile
-   → /wiki-critique (adversarial)  → /wiki-ideate (web/arXiv/Scholar)
-   → write the gap; set novelty_verified: true
+   → /wiki-critique (adversarial)  → /wiki-ideate (recombine methods x constraints)
+   → refine the gap; user sets novelty_verified: true when confident
 ```
 As you add rounds, the novelty boundary **narrows** — each new neighbor paper
 compresses the claim. Keep the gap's "what makes this novel" honest and current;
-track novelty *threats* (e.g., a same-venue accepted paper) explicitly. After big
+track novelty *threats* (e.g., a same-venue accepted paper) explicitly.
+`wiki-search-latest` marks excluded candidates `[FENCE]`; `wiki-compile` pauses
+before concepts that cross an exclusion boundary (see section 9). After big
 expansions, run a **cross-file consistency audit** (links, gap-table facts vs the
 papers, concept integration, terminology/stance) — fan out auditors by dimension.
 

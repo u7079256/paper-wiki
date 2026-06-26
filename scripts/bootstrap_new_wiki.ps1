@@ -94,7 +94,7 @@ function Render($tmpl, $out) {
           -replace '\{\{TOPIC\}\}', $Topic `
           -replace '\{\{NS\}\}', $ns `
           -replace '\{\{DATE\}\}', $date `
-          -replace '\{\{NEWPATH\}\}', ($NewPath -replace '\\','\\')
+          -replace '\{\{NEWPATH\}\}', $NewPath
   WriteUtf8 $out $t
 }
 Render "$SkillRoot\templates\$Variant\CLAUDE.md.tmpl"   "$NewPath\CLAUDE.md"

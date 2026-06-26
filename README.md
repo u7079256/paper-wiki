@@ -22,7 +22,7 @@ Claude **事先把每篇源文献从头读到尾**（包括附录），写成结
 | 特色功能 | `wiki/gaps/`（新颖性分析） | `wiki/exam-scope.md`（考试大纲骨架） |
 | 外部检索 | 有（`/wiki-search-latest`、`/wiki-ideate`） | 无 |
 
-research 适合文献调研和 novelty gap 分析；course 适合复习备考，把几十份讲义压缩成可查的知识库。
+research 适合文献调研和 novelty gap 分析（research 变体的 `research.md` 含 scope fence，定义核心聚焦、相邻可纳入、硬排除范围，agent 自动据此筛选）；course 适合复习备考，把几十份讲义压缩成可查的知识库。
 
 ## 安装
 

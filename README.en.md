@@ -14,7 +14,9 @@ reverse-linked and consistent.**
 
 Two variants out of the box:
 - **research** — papers → `papers/` → `concepts/` → `gaps/` (novelty analysis,
-  arXiv search, ideation).
+  arXiv search, ideation). The research variant includes a scope fence in
+  `research.md` (core focus, adjacent-OK areas, exclusions) that agents use to
+  filter candidates automatically.
 - **course** — lecture slides / labs / assignments → `lectures/` + `practice/` →
   `topics/` → optional `exam-scope.md` spine (exam revision).
 
@@ -126,7 +128,8 @@ pdf`) or use `scripts/extract_pptx.py` (lossy).
 .claude-plugin/             plugin.json + marketplace.json (one-command install metadata)
 skills/paper-wiki/SKILL.md  the skill entry (how Claude operates it)
 scripts/                    bootstrap (.ps1 + .sh) + local/remote OCR + pptx + requirements.txt
-commands/  agents/          slash commands + sub-agents
+commands/                   slash command definitions
+agents/                     sub-agents (wiki-critic / wiki-searcher / wiki-ideator)
 templates/{research,course} CLAUDE.md / research.md / README.md per variant
 templates/memory/           placeholder memory files
 docs/TUTORIAL.md            command-by-command tutorial (research + course)

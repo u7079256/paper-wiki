@@ -19,7 +19,7 @@ metadata:
   $env:MINERU_REMOTE_PASS = "<password>"   # 只存本地 memory,绝不写进任何文件 / 仓库
   python scripts/mineru_remote_ocr.py [input_dir]
   ```
-- **GPU 被占用时**:脚本自带 8 GB 空闲显存门槛预检,不足则干净退出并汇报(退出码 4)。**不轮询、不 CPU fallback、不 kill 别人进程** —— 由你决定何时重试
+- **GPU 被占用时**:脚本自带 8 GB 空闲显存门槛预检,不足则干净退出并汇报(退出码 4)。**不轮询、不 CPU 兜底、不 kill 别人进程** —— 由你决定何时重试
 - **共享注意**:多项目共用一台机器时,OCR namespace(`mineru_<ns>_*`)隔离 /tmp 路径,但 GPU 与 conda env 仍共享 —— **两项目别同时跑 OCR**
 - **PPTX**:mineru 不吃;优先远程 `soffice --headless --convert-to pdf` 转 PDF 再走管线
 

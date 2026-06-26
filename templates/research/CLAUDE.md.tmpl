@@ -1,9 +1,9 @@
 > 🚧 **TODO (delete this block after /wiki-init):** 由 bootstrap 从 paper-wiki 的 **research** 变体生成。
 > 通用规则(多 agent、OCR 管线、目录约定)直接沿用;只需改:① 顶部 topic 描述 ② 「## 种子方向」一节 ③ 配合 research.md 填项目内容。
 
-# Research Wiki — {{PROJECT_NAME}}
+# 研究 Wiki — {{PROJECT_NAME}}
 
-> 这是一个 **LLM Wiki**(Claude Code 主动逐页读文献、**编译**结构化知识),不是 RAG。区别:主动**写**结构化知识 ≠ 查询时被动检索重建。
+> 这是 **LLM Wiki**(Claude Code 主动逐页读文献、**编译**结构化知识),不是 RAG。区别:主动**写**结构化知识 ≠ 查询时被动检索重建。
 >
 > 当前 topic:**{{PROJECT_NAME}}** —— _(一句话写清研究方向)_。投稿目标:_(待填)_。
 > 详见 `research.md`(研究主线 + 种子文献)。
@@ -29,7 +29,7 @@
 
 ## 多 Agent 协作架构(全 Claude 实现)
 
-主会话 orchestrate,子 agent 分工:
+主会话统筹调度,子 agent 分工:
 
 | 角色 | 触发 | 子 agent |
 |---|---|---|
@@ -54,7 +54,7 @@
 ## Claude Code 编译规则(`/wiki-compile`)
 
 ### 1. 扫描 raw/
-列出 `raw/{{TOPIC}}/mineru/` 下 OCR markdown,与 `wiki/papers/` diff。新论文 → 新建摘要;已处理 → 除非明确要求不重写。
+列出 `raw/{{TOPIC}}/mineru/` 下 OCR markdown,与 `wiki/papers/` diff。新论文 → 新建摘要;已处理 → 除非明确要求不重写。Scope fence 定义在 research.md——编译前先检查排除范围;跨越排除边界的 concept 须暂停并提示用户确认。
 
 ### 2. paper 摘要 (`wiki/papers/<id>.md`)
 ```markdown
@@ -129,7 +129,7 @@ python scripts/mineru_remote_ocr.py [input_dir]   # 默认 raw/{{TOPIC}}/
 产物落 `raw/{{TOPIC}}/mineru/`。完成后 `/wiki-compile`。本项目 OCR namespace = `mineru_{{NS}}_*`,与其他项目隔离。
 
 ### 🔴 硬规则 / 已知坑
-- ❌ **CPU OCR**(本地或远程都禁 CPU)。远程 GPU 占用时脚本干净退出(退出码 4),**不轮询、不 CPU fallback、不 kill 别人进程**。
+- ❌ **CPU OCR**(本地或远程都禁 CPU)。远程 GPU 占用时脚本干净退出(退出码 4),**不轮询、不 CPU 兜底、不 kill 别人进程**。
 - 脚本只抓 input_dir **直接子级**的 `*.pdf`(不递归)—— PDF 在子目录时先平铺到一个临时目录再喂。
 - 共享 GPU/conda env 时**两项目别同时跑 OCR**(会互相 rm -rf;namespace 仅隔离 /tmp 路径不隔离 GPU)。
 - **PPTX** mineru 不吃:优先远程 `soffice --headless --convert-to pdf` 转 PDF 再走管线;本地兜底 `scripts/extract_pptx.py`(版式丢失,需 `PYTHONIOENCODING=utf-8`)。

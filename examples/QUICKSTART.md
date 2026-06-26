@@ -8,13 +8,15 @@ later, only when you have scanned/large PDFs (see `../docs/GOTCHAS.md`).
 > Windows PowerShell shown. **macOS / Linux:** use `scripts/bootstrap_new_wiki.sh`
 > (same flow; args `--path --topic --name --variant`).
 
-## 0. Install the skill (optional — not needed to run the bootstrap)
-From inside the cloned repo, copy it into your skills dir (makes Claude aware of the
-methodology):
+## 0. Install the plugin (optional — not needed to run the bootstrap)
+Install via the plugin marketplace (makes the `/paper-wiki:wiki-*` commands available
+globally):
 ```
-# Windows:    New-Item -Type Directory -Force $HOME\.claude\skills\paper-wiki | Out-Null; Copy-Item .\* $HOME\.claude\skills\paper-wiki\ -Recurse -Force
-# macOS/Linux: mkdir -p ~/.claude/skills/paper-wiki && cp -r ./. ~/.claude/skills/paper-wiki/
+> /plugin marketplace add u7079256/paper-wiki
+> /plugin install paper-wiki@paper-wiki
 ```
+> **Manual alternative (not recommended):** `git clone` this repo and
+> `cp commands/*.md ~/.claude/commands/` + `cp agents/*.md ~/.claude/agents/`.
 
 ## 1. Bootstrap a throwaway research wiki
 ```powershell
@@ -63,6 +65,17 @@ Add 2–3 more papers the same way, then ask Claude to `/wiki-compile` again —
 `examples/sample-research-wiki/` is a small **illustrative** wiki (synthetic content,
 clearly labeled) showing the final shape: paper notes ↔ concept ↔ gap, all
 reverse-linked. Open it in Obsidian to see the graph.
+
+## Available commands
+| command | what it does |
+|---|---|
+| `/wiki-init` | one-time: fill topic + seeds (research) / unpack + inventory (course) |
+| `/wiki-compile` | read new `raw/` material, write notes, synthesize concepts/topics |
+| `/wiki-search-latest <topic>` | (research) find recent papers to import |
+| `/wiki-critique <file>` | adversarial review: holes, overclaims, wrong formulas |
+| `/wiki-ideate <gap>` | (research) discover untried combinations |
+
+> Query the wiki with `/teach <question>`. See `../docs/TUTORIAL.md` for details.
 
 ## Going further
 - **Full command-by-command tutorial (both variants):** `../docs/TUTORIAL.md`.

@@ -37,6 +37,30 @@ This creates `D:\my-wiki` with `.claude/{commands,agents}`, `scripts/`, the
 rendered for the variant. Then start Claude Code **in that folder** and run
 `/wiki-init`.
 
+## Where the slash commands live (project vs global — read this)
+Claude Code resolves slash commands and sub-agents from **two scopes**:
+- **Project** — `<project>/.claude/commands/` + `agents/`: available **only inside that project folder**.
+- **Global (personal)** — `~/.claude/commands/` + `~/.claude/agents/`: available in **every session, any path**.
+
+`bootstrap_new_wiki.ps1` installs the commands **per project** (into the new
+project's `.claude/`). So `/wiki-*` work **inside a bootstrapped wiki project and
+nowhere else** — by design (each wiki is self-contained, and the `course` variant
+deliberately ships fewer commands).
+
+To use `/wiki-*` **everywhere** without re-bootstrapping, copy them into your
+personal scope once:
+```
+cp commands/*.md ~/.claude/commands/    # /wiki-* in every session, any path
+cp agents/*.md   ~/.claude/agents/
+```
+Caveat: these commands assume a wiki project layout (`raw/`, `wiki/`, `CLAUDE.md`);
+run them in a non-wiki folder and they have nothing to act on.
+
+**Skill ≠ slash commands.** Installing the *skill* (`~/.claude/skills/wiki-builder/`)
+makes Claude aware of the methodology + bootstrap, but does **not** register the
+`/wiki-*` slash commands — those only come from `.claude/commands/` (project or
+global) as above.
+
 ## Daily use (slash commands, inside a wiki project)
 | command | what it does |
 |---|---|

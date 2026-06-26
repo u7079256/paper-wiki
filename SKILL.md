@@ -70,6 +70,13 @@ inventory the materials (course).
 - `docs/GOTCHAS.md` — hard-won pitfalls (Windows UTF-8/GBK, OCR non-recursive glob,
   pkill self-kill, PPTX, %%EOF truncation, …). **Read before editing scripts.**
 
+## Command scope (slash commands vs skill)
+The `/wiki-*` slash commands resolve from `.claude/commands/` — **per project** (the
+bootstrap installs them there) or **global** (`~/.claude/commands/`). They are **not
+global by default**, and installing this skill does **not** register them. To get
+`/wiki-*` everywhere, copy `commands/` + `agents/` into `~/.claude/`. Details in
+README → "Where the slash commands live".
+
 ## Security
 Never commit credentials. The OCR script reads host/user/password from env vars;
 the real password lives only in local Claude Code memory. Server host/user are

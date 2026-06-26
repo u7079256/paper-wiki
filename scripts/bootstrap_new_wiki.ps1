@@ -67,8 +67,8 @@ foreach ($gk in @("$NewPath\raw\$Topic\.gitkeep","$NewPath\wiki\notes\.gitkeep")
 
 # --- copy commands / agents / scripts (variant-aware subset) ----------------
 if ($Variant -eq 'research') {
-  $cmds   = @('wiki-init','wiki-compile','wiki-search-latest','wiki-critique','wiki-verify-novelty')
-  $agents = @('wiki-searcher','wiki-critic','wiki-novelty-verifier')
+  $cmds   = @('wiki-init','wiki-compile','wiki-search-latest','wiki-critique','wiki-ideate')
+  $agents = @('wiki-searcher','wiki-critic','wiki-ideator')
 } else {
   # course/exam wikis do not expand outward, so the search/novelty tooling is dropped
   $cmds   = @('wiki-init','wiki-compile','wiki-critique')

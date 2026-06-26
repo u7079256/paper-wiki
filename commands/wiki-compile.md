@@ -51,7 +51,7 @@ Keep it concise (quality over completeness).
 ### Step 5 — (research variant only) Gaps
 Per CLAUDE.md §gap: when a gap recurs across ≥2 sources or is called out in
 `research.md`, write/update `wiki/gaps/<gap_id>.md` with `novelty_verified: false`
-(verify later via `/wiki-verify-novelty`).
+(verify later via `/wiki-ideate`).
 
 ### Step 6 — Lint
 - **Orphans** (nothing links to them) → add `tags: [orphan]`

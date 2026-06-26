@@ -1,7 +1,7 @@
 ---
 type: gap
 seeded_from: [[token-routing]], [[paper-alpha]], [[paper-beta]]
-novelty_verified: false   # 示例:待 /wiki-verify-novelty 验证
+novelty_verified: false   # 示例:待 /wiki-ideate 验证
 ---
 
 > SYNTHETIC — illustrative gap showing the gap schema + reverse-links.
@@ -23,4 +23,4 @@ novelty_verified: false   # 示例:待 /wiki-verify-novelty 验证
 ## 相关文献
 - [[paper-alpha]]、[[paper-beta]](均自承流式未解)、[[token-routing]]
 
-> 下一步:`/wiki-critique wiki/gaps/streaming-token-routing` → `/wiki-verify-novelty`。
+> 下一步:`/wiki-critique wiki/gaps/streaming-token-routing` → `/wiki-ideate`。

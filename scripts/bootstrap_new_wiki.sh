@@ -40,8 +40,8 @@ for d in "${WIKIDIRS[@]}"; do mkdir -p "$NEW_PATH/wiki/$d"; : > "$NEW_PATH/wiki/
 
 # commands / agents (variant-aware subset)
 if [ "$VARIANT" = research ]; then
-  CMDS=(wiki-init wiki-compile wiki-search-latest wiki-critique wiki-verify-novelty)
-  AGENTS=(wiki-searcher wiki-critic wiki-novelty-verifier)
+  CMDS=(wiki-init wiki-compile wiki-search-latest wiki-critique wiki-ideate)
+  AGENTS=(wiki-searcher wiki-critic wiki-ideator)
 else
   CMDS=(wiki-init wiki-compile wiki-critique)
   AGENTS=(wiki-critic)

@@ -306,14 +306,14 @@ body {
       <tr><td><code>/wiki-compile</code></td><td>读取 <code>raw/</code> 中的新材料，编译笔记，综合概念或主题</td></tr>
       <tr><td><code>/wiki-search-latest</code></td><td>搜索最新相关论文 <span class="tag">research</span></td></tr>
       <tr><td><code>/wiki-critique</code></td><td>对抗性审查：找漏洞、过度声明、公式错误</td></tr>
-      <tr><td><code>/wiki-verify-novelty</code></td><td>验证声称的研究空白是否真的没人做过 <span class="tag">research</span></td></tr>
+      <tr><td><code>/wiki-ideate</code></td><td>发现未试过的组合 <span class="tag">research</span></td></tr>
     </tbody></table>
     <table class="cmd-table" data-lang="en"><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>
       <tr><td><code>/wiki-init</code></td><td>One-time setup: fill topic + seeds (research) / unpack + inventory (course)</td></tr>
       <tr><td><code>/wiki-compile</code></td><td>Read new <code>raw/</code> material, write notes, synthesize concepts</td></tr>
       <tr><td><code>/wiki-search-latest</code></td><td>Find recent papers to import <span class="tag">research</span></td></tr>
       <tr><td><code>/wiki-critique</code></td><td>Adversarial review: holes, overclaims, wrong formulas</td></tr>
-      <tr><td><code>/wiki-verify-novelty</code></td><td>Check a claimed gap against prior work <span class="tag">research</span></td></tr>
+      <tr><td><code>/wiki-ideate</code></td><td>Discover untried combinations <span class="tag">research</span></td></tr>
     </tbody></table>
   </section>
 
@@ -325,7 +325,7 @@ body {
       <code class="dir">skills/paper-wiki/</code><span class="desc">— skill 入口（Claude 的行为说明）</span><br>
       <code class="dir">scripts/</code><span class="desc">— bootstrap 脚本 + OCR + PPTX 提取</span><br>
       <code class="dir">commands/</code><span class="desc">— slash 命令定义</span><br>
-      <code class="dir">agents/</code><span class="desc">— sub-agent（wiki-critic / wiki-searcher / wiki-novelty-verifier）</span><br>
+      <code class="dir">agents/</code><span class="desc">— sub-agent（wiki-critic / wiki-searcher / wiki-ideator）</span><br>
       <code class="dir">templates/</code><span class="desc">— 各变体的模板文件</span><br>
       <code class="dir">docs/</code><span class="desc">— 命令教程、OCR 配置指南、方法论、踩坑记录</span><br>
       <code class="dir">examples/</code><span class="desc">— 无 GPU 快速上手 + 示例 wiki</span><br>
@@ -336,7 +336,7 @@ body {
       <code class="dir">skills/paper-wiki/</code><span class="desc">— SKILL.md (how Claude operates it)</span><br>
       <code class="dir">scripts/</code><span class="desc">— bootstrap (.ps1 + .sh) + OCR + PPTX</span><br>
       <code class="dir">commands/</code><span class="desc">— slash command definitions</span><br>
-      <code class="dir">agents/</code><span class="desc">— sub-agents (wiki-critic / wiki-searcher / wiki-novelty-verifier)</span><br>
+      <code class="dir">agents/</code><span class="desc">— sub-agents (wiki-critic / wiki-searcher / wiki-ideator)</span><br>
       <code class="dir">templates/</code><span class="desc">— {research, course} template files</span><br>
       <code class="dir">docs/</code><span class="desc">— tutorial, OCR setup, methodology, gotchas</span><br>
       <code class="dir">examples/</code><span class="desc">— no-GPU quickstart + sample wiki</span><br>

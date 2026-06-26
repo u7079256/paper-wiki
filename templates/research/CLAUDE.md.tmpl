@@ -36,10 +36,10 @@
 | 综合 / 编译 | `/wiki-compile` | 主会话 |
 | 联网搜最新论文 | `/wiki-search-latest <主题>` | `wiki-searcher` |
 | 挑漏洞 / 对抗审稿 | `/wiki-critique <file>` | `wiki-critic` |
-| 验证研究空白新颖性 | `/wiki-verify-novelty <gap>` | `wiki-novelty-verifier` |
+| 发现未试过的组合 | `/wiki-ideate <gap>` | `wiki-ideator` |
 | 新项目初始化(只跑一次) | `/wiki-init` | 主会话 |
 
-**典型闭环**:`/wiki-search-latest` → 用户确认导入 → 远程 OCR → `/wiki-compile`(写 paper/concept/gap)→ `/wiki-critique` → `/wiki-verify-novelty` → 回写 `novelty_verified: true`。
+**典型闭环**:`/wiki-search-latest` → 用户确认导入 → 远程 OCR → `/wiki-compile`(写 paper/concept/gap)→ `/wiki-critique` → `/wiki-ideate` → 回写 `novelty_verified: true`。
 
 ## 用 /teach 读 wiki
 
@@ -96,7 +96,7 @@ related_papers: [[paper-a]], [[paper-b]], [[paper-c]]
 ---
 type: gap
 seeded_from: [[paper-a]], [[concept-b]]
-novelty_verified: false   # 待 wiki-novelty-verifier 验证
+novelty_verified: false   # 待 wiki-ideator 验证
 ---
 ## 问题陈述
 ## 为什么前人没解决

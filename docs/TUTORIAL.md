@@ -7,7 +7,7 @@ GPU). OCR install/use: [`OCR-SETUP.md`](OCR-SETUP.md). The why: [`METHODOLOGY.md
 ## The loop (one picture)
 ```
 research:  /wiki-init → import → /wiki-compile → /wiki-search-latest → /wiki-compile
-                      → /wiki-critique → /wiki-verify-novelty → /teach
+                      → /wiki-critique → /wiki-ideate → /teach
 course:    /wiki-init (unpack) → OCR → /wiki-compile → /wiki-critique → /teach
 ```
 
@@ -88,15 +88,14 @@ new gaps may surface. The wiki grows in rounds.
 - **Tip:** the critic **never edits** — it flags, you decide. Ask Claude to apply the
   🔴 fixes afterward.
 
-## A7. `/wiki-verify-novelty` — is the gap actually open?
-- **What:** spawns `wiki-novelty-verifier` to search web/arXiv/Scholar for prior work
+## A7. `/wiki-ideate` — discover untried combinations
+- **What:** spawns `wiki-ideator` to search web/arXiv/Scholar for prior work
   overlapping your gap, returning a verdict **confirmed / partial / refuted** + the
   closest neighbors.
 - **When:** before investing research time in a gap.
-- **Paste to Claude:** `/wiki-verify-novelty wiki/gaps/my-core-gap.md`
+- **Paste to Claude:** `/wiki-ideate wiki/gaps/my-core-gap.md`
 - **You get:** a verdict + candidate-overlap table + (if partial) the angles still open.
 - **Tip:** it **won't** set `novelty_verified: true` itself — it proposes; you edit.
-  It errs toward *finding* overlap, so a “confirmed” verdict is meaningful.
 
 ## A8. `/teach` — query the wiki / interactive learning
 - **What:** reads `research.md` for context, greps `wiki/` for relevant notes,
@@ -117,7 +116,7 @@ per dimension. Fix what they find. (This is how a large wiki stays trustworthy.)
 
 # Part B — Course wiki (lectures → topics → practice)
 
-Same commands, course schema. `wiki-search-latest` / `wiki-verify-novelty` are **not
+Same commands, course schema. `wiki-search-latest` / `wiki-ideate` are **not
 installed** for course projects (a course doesn't expand outward).
 
 ## B0. Bootstrap (once)
@@ -180,5 +179,5 @@ interactive teaching with follow-up questions.
 | `/teach` says “not in wiki” | that source isn't compiled — import + `/wiki-compile` it |
 | OCR errors / exit 2/3/4 | see [`OCR-SETUP.md`](OCR-SETUP.md) §7 |
 | two projects' OCR clash | shared GPU — run them one at a time |
-| `/wiki-search-latest` / `/wiki-verify-novelty` missing | you're in a **course** project; they're research-only by design |
+| `/wiki-search-latest` / `/wiki-ideate` missing | you're in a **course** project; they're research-only by design |
 | compile rewrote nothing | it skips already-compiled notes; say “recompile <id>” to force |

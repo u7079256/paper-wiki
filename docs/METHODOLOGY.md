@@ -59,7 +59,7 @@ concepts/topics list `related_*` in frontmatter. This turns the wiki into a grap
 `papers/ → concepts/ → gaps/`. The loop:
 ```
 /wiki-search-latest  → confirm imports → remote OCR → /wiki-compile
-   → /wiki-critique (adversarial)  → /wiki-verify-novelty (web/arXiv/Scholar)
+   → /wiki-critique (adversarial)  → /wiki-ideate (web/arXiv/Scholar)
    → write the gap; set novelty_verified: true
 ```
 As you add rounds, the novelty boundary **narrows** — each new neighbor paper

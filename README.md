@@ -20,7 +20,7 @@ Claude **事先把每篇源文献从头读到尾**（包括附录），写成结
 | 主笔记层 | `wiki/papers/` | `wiki/lectures/` + `wiki/practice/` |
 | 综合层 | `wiki/concepts/` | `wiki/topics/` |
 | 特色功能 | `wiki/gaps/`（新颖性分析） | `wiki/exam-scope.md`（考试大纲骨架） |
-| 外部检索 | 有（`/wiki-search-latest`、`/wiki-verify-novelty`） | 无 |
+| 外部检索 | 有（`/wiki-search-latest`、`/wiki-ideate`） | 无 |
 
 research 适合文献调研和 novelty gap 分析；course 适合复习备考，把几十份讲义压缩成可查的知识库。
 
@@ -122,7 +122,7 @@ Claude Code 从两个位置加载命令：
 | `/wiki-compile` | 读取 `raw/` 中的新材料，编译笔记，综合概念或主题 |
 | `/wiki-search-latest <主题>` | （research）搜索最新相关论文 |
 | `/wiki-critique <文件>` | 对抗性审查：找漏洞、过度声明、公式错误 |
-| `/wiki-verify-novelty <gap>` | （research）验证声称的研究空白是否真的没人做过 |
+| `/wiki-ideate <gap>` | （research）发现未试过的组合 |
 
 > 查询 wiki 用 `/teach <问题>`——它会自动读 wiki 笔记、标出处、展开交互式教学，wiki 里没有的内容会明确告知。
 
@@ -152,7 +152,7 @@ born-digital 论文可以跳过 OCR，直接走 WebFetch 路径。
 skills/paper-wiki/SKILL.md  skill 入口（Claude 的行为说明）
 scripts/                    bootstrap 脚本 + OCR 脚本 + PPTX 提取 + requirements.txt
 commands/                   slash 命令定义
-agents/                     sub-agent 定义（wiki-critic / wiki-searcher / wiki-novelty-verifier）
+agents/                     sub-agent 定义（wiki-critic / wiki-searcher / wiki-ideator）
 templates/{research,course} 各变体的 CLAUDE.md / research.md / README.md 模板
 templates/memory/           占位 memory 文件（GPU 服务器信息等）
 docs/TUTORIAL.md            命令教程（research + course）

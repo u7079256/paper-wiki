@@ -40,7 +40,7 @@ variants:
     synthesis: "wiki/concepts/"
     extra: "wiki/gaps/"
     note_types: [paper, concept, gap]
-    outward_enabled: [wiki-search-latest, wiki-verify-novelty]
+    outward_enabled: [wiki-search-latest, wiki-ideate]
     scope_fence:
       lifecycle_state: {enum: [BUILDING, ACTIVE, FROZEN], default: BUILDING, location: "research.md § Scope fence"}
       core_focus: "1-2 sentences anchoring what the project IS"
@@ -74,12 +74,12 @@ commands:
   # wiki-ask: RETIRED — replaced by /teach integration. /teach reads research.md + greps wiki/ for relevant notes, cites sources, and says 'not in wiki' if absent. See CLAUDE.md for project-level teach rules.
   wiki-search-latest:  {variant: research, agent: wiki-searcher, output: "<=10 candidate table", rule: "never import without user confirm"}
   wiki-critique:       {agent: wiki-critic, output: "severity-tagged findings", edits: "never; user decides"}
-  wiki-verify-novelty: {variant: research, agent: wiki-novelty-verifier, output: "confirmed | partial | refuted", rule: "never set novelty_verified=true itself; user edits"}
+  wiki-ideate: {variant: research, agent: wiki-ideator, output: "confirmed | partial | refuted", rule: "never set novelty_verified=true itself; user edits"}
 
 agents:
   wiki-searcher:        {tools: [WebSearch, WebFetch, Read, Grep, Glob], rule: "verify each arxiv id by fetching abstract; never fabricate ids/papers; check scope fence exclusions and mark [FENCE]; report saturation signal"}
   wiki-critic:          {tools: [Read, Grep, Glob, WebSearch], stance: adversarial, severities: ["🔴 blocking", "🟡 weak", "🔵 suggestive"], rule: "cite the lines critiqued; no edits"}
-  wiki-novelty-verifier: {tools: [WebSearch, WebFetch, Read, Grep, Glob], bias: "err toward finding overlap"}
+  wiki-ideator: {tools: [WebSearch, WebFetch, Read, Grep, Glob], stance: "curious, grounded"}
 
 fanout:
   ingest: "one sub-agent per source, in parallel (one message, multiple Agent calls)"

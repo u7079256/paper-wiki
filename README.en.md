@@ -14,7 +14,7 @@ reverse-linked and consistent.**
 
 Two variants out of the box:
 - **research** — papers → `papers/` → `concepts/` → `gaps/` (novelty analysis,
-  arXiv search, novelty verification).
+  arXiv search, ideation).
 - **course** — lecture slides / labs / assignments → `lectures/` + `practice/` →
   `topics/` → optional `exam-scope.md` spine (exam revision).
 
@@ -95,7 +95,7 @@ tutorial/docs use; the **plugin** exposes them as `/paper-wiki:wiki-*`. Same com
 | `/wiki-compile` | read new `raw/` material → write paper/lecture notes → synthesize concepts/topics |
 | `/wiki-search-latest <topic>` | (research) find recent papers to import |
 | `/wiki-critique <file>` | adversarial review: holes, overclaims, wrong formulas |
-| `/wiki-verify-novelty <gap>` | (research) check a claimed gap against prior work |
+| `/wiki-ideate <gap>` | (research) discover untried combinations |
 
 > To query the wiki, use `/teach <question>` — it reads wiki notes, cites sources, and teaches interactively. Absent content is explicitly flagged.
 

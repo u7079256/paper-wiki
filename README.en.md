@@ -6,8 +6,8 @@ A **Claude Code plugin** for building an **LLM Wiki** — a structured,
 reverse-linked knowledge base that Claude *actively compiles* from your source
 PDFs / slides, rather than retrieving chunks at query time (RAG).
 
-It packages a battle-tested workflow proven across a multi-round research-paper
-wiki and a course exam-revision wiki: **read every source page-by-page (remote-GPU
+It packages a battle-tested workflow proven across multiple real-world research and
+course wiki builds: **read every source page-by-page (remote-GPU
 OCR) → write faithful, cited, no-hallucination notes (one sub-agent per source) →
 synthesize cross-source concepts → adversarially review → keep the whole graph
 reverse-linked and consistent.**
@@ -143,8 +143,8 @@ examples/sample-research-wiki/  a finished illustrative wiki (see the output sha
 ```
 
 ## License
-MIT — edit the holder name in `LICENSE`.
+MIT
 
 ## Credits
-Distilled from real builds: a World-Action-Model research wiki and an Advanced ML
-course exam-revision wiki. The methodology and the gotchas come from those.
+Thanks to the early adopters and internal testers whose real-world feedback shaped
+the methodology and the gotchas.

@@ -1,3 +1,5 @@
+[English](README.md) | **中文** | [项目主页](docs/index.html#zh)
+
 # paper-wiki
 
 把一堆论文或课程材料丢给 Claude，让它逐页读完、写成带引用的笔记、交叉综合出概念图谱——

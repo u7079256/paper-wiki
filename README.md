@@ -1,3 +1,5 @@
+**English** | [中文](README.zh.md) | [Landing Page](docs/index.html#en)
+
 # paper-wiki
 
 A **Claude Code plugin** for building an **LLM Wiki** — a structured,

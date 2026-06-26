@@ -1,0 +1,26 @@
+---
+name: remote-ocr-gpu-server
+description: 论文/讲义 PDF→Markdown 的 OCR 必须走的远程 GPU 服务器的连接方式、环境、硬规则
+metadata:
+  type: reference
+---
+
+> ⚠️ **这是模板。** 复制到你本地 Claude Code 的**项目 memory 目录**后,填入你自己的服务器与密码。
+> **此文件填好后永不进任何 git 仓库**(密码只存本地 memory)。skill 仓库里只保留这份占位模板。
+
+PDF → Markdown 的 OCR 必须在远程 GPU 上跑,本地禁用。
+
+- **Host**:`<填:你的 GPU 服务器 host / IP>`,用户 `<填:ssh 用户>`,GPU `<填:型号 + 显存>`,OS `<填>`
+- **环境**:conda env `~/miniconda3/envs/mineru`(torch 2.4.1+cu121 / cuDNN 9.1.0 cu12 / `mineru[core]` 3.1.0)。装好后跨项目复用,**不要重装**
+- **配置(环境变量,密码不进 repo)**:
+  ```
+  $env:MINERU_REMOTE_HOST = "<host>"
+  $env:MINERU_REMOTE_USER = "<user>"
+  $env:MINERU_REMOTE_PASS = "<password>"   # 只存本地 memory,绝不写进任何文件 / 仓库
+  python scripts/mineru_remote_ocr.py [input_dir]
+  ```
+- **GPU 被占用时**:脚本自带 8 GB 空闲显存门槛预检,不足则干净退出并汇报(退出码 4)。**不轮询、不 CPU fallback、不 kill 别人进程** —— 由你决定何时重试
+- **共享注意**:多项目共用一台机器时,OCR namespace(`mineru_<ns>_*`)隔离 /tmp 路径,但 GPU 与 conda env 仍共享 —— **两项目别同时跑 OCR**
+- **PPTX**:mineru 不吃;优先远程 `soffice --headless --convert-to pdf` 转 PDF 再走管线
+
+硬规则:禁 CPU fallback、禁本地跑 mineru、禁换服务器。详细坑见 skill 仓库 `docs/GOTCHAS.md`。

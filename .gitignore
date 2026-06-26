@@ -1,0 +1,29 @@
+# --- secrets: NEVER commit credentials -------------------------------------
+.env
+.env.*
+*.secret
+**/MINERU_REMOTE_PASS*
+# Real (filled-in) memory files live in your local Claude Code memory dir, NOT here.
+# Only the *.tmpl placeholders under templates/memory/ belong in this repo.
+
+# --- python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- OS / editor junk ------------------------------------------------------
+.DS_Store
+._*
+__MACOSX/
+Thumbs.db
+.idea/
+.vscode/
+.obsidian/workspace*
+
+# --- safety net: source material & OCR output are heavy and may be private --
+# (these only appear if you run a wiki project INSIDE this repo, which you should
+#  not -- bootstrap creates projects elsewhere. Ignored just in case.)
+*.pdf
+*.pptx
+**/mineru/

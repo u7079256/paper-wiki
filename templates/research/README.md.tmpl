@@ -1,0 +1,32 @@
+# {{PROJECT_NAME}} 研究 Wiki
+
+> **LLM Wiki**(Claude Code 逐页读论文、编译结构化知识,不是 RAG)。投稿目标:_(待填)_。
+
+## 当前状态({{DATE}})
+刚 bootstrap 建立(research 变体),wiki 内容待填。先在本目录启动 Claude Code 跑 `/wiki-init`。
+
+## 怎么用
+在 `{{NEWPATH}}` 启动 Claude Code,CLAUDE.md 与项目 memory 自动加载。
+
+| 命令 | 作用 |
+|---|---|
+| `/wiki-init` | 初始化:填课题 + 种子(仅 bootstrap 后跑一次) |
+| `/wiki-ask <问题>` | 只读查询:只基于已编译 wiki 回答、标出处、没有的说没有 |
+| `/wiki-search-latest <方向>` | 联网搜新论文,给候选列表 |
+| `/wiki-compile` | 把 raw/ 新材料编译成 paper / concept / gap |
+| `/wiki-critique <文件>` | 对抗式审稿 |
+| `/wiki-verify-novelty <gap>` | 全网验证 gap 是否真空白 |
+
+### OCR 入库
+PDF → Markdown 必须走远程 GPU(配置见 CLAUDE.md「远程 OCR 入库管线」,密码只存本地 memory):
+```
+$env:MINERU_REMOTE_HOST/USER/PASS = ...
+python scripts/mineru_remote_ocr.py
+```
+
+## 从哪看起
+1. `research.md` —— 研究主线、当前方向、TODO(开新对话先读)
+2. `CLAUDE.md` —— 工作流规则
+3. `wiki/papers/` · `wiki/concepts/` · `wiki/gaps/`
+
+> 用 Obsidian 打开本目录可看反链 graph。

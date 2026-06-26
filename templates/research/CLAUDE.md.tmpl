@@ -1,0 +1,136 @@
+> 🚧 **TODO (delete this block after /wiki-init):** 由 bootstrap 从 claude-wiki-builder 的 **research** 变体生成。
+> 通用规则(多 agent、OCR 管线、目录约定)直接沿用;只需改:① 顶部 topic 描述 ② 「## 种子方向」一节 ③ 配合 research.md 填项目内容。
+
+# Research Wiki — {{PROJECT_NAME}}
+
+> 这是一个 **LLM Wiki**(Claude Code 主动逐页读文献、**编译**结构化知识),不是 RAG。区别:主动**写**结构化知识 ≠ 查询时被动检索重建。
+>
+> 当前 topic:**{{PROJECT_NAME}}** —— _(一句话写清研究方向)_。投稿目标:_(待填)_。
+> 详见 `research.md`(研究主线 + 种子文献)。
+
+## 目录约定
+
+```
+{{TOPIC}}-wiki/
+├── raw/                    # 原始论文 / 对话记录(只增不改)
+│   └── {{TOPIC}}/          #   本 topic 的 PDF + OCR 产物(mineru/)
+├── wiki/                   # LLM 编译产物(可重写)
+│   ├── papers/             #   paper-level 摘要(每篇一文件)
+│   ├── concepts/           #   跨论文综合的概念文章
+│   ├── gaps/               #   已识别的研究空白(novelty 论证)
+│   ├── experiments/        #   自作论文 / 进展记录
+│   └── notes/              #   对话快照(结构松,保可追溯)
+├── research.md             # 研究主线 & 上下文(跨对话共享)
+├── scripts/                # 远程 OCR(mineru_remote_ocr.py)+ PPTX 兜底(extract_pptx.py)
+└── .claude/{commands,agents}/
+```
+
+> **不预先建空子目录** —— 某主题积累 ≥3 篇相关文件时再在 `concepts/` 下分子目录。
+
+## 多 Agent 协作架构(全 Claude 实现)
+
+主会话 orchestrate,子 agent 分工:
+
+| 角色 | 触发 | 子 agent |
+|---|---|---|
+| 综合 / 编译 | `/wiki-compile` | 主会话 |
+| 联网搜最新论文 | `/wiki-search-latest <主题>` | `wiki-searcher` |
+| 挑漏洞 / 对抗审稿 | `/wiki-critique <file>` | `wiki-critic` |
+| 验证研究空白新颖性 | `/wiki-verify-novelty <gap>` | `wiki-novelty-verifier` |
+| 只读查询(复用知识库) | `/wiki-ask <问题>` | 主会话 |
+| 新项目初始化(只跑一次) | `/wiki-init` | 主会话 |
+
+**典型闭环**:`/wiki-search-latest` → 用户确认导入 → 远程 OCR → `/wiki-compile`(写 paper/concept/gap)→ `/wiki-critique` → `/wiki-verify-novelty` → 回写 `novelty_verified: true`。
+
+## Claude Code 编译规则(`/wiki-compile`)
+
+### 1. 扫描 raw/
+列出 `raw/{{TOPIC}}/mineru/` 下 OCR markdown,与 `wiki/papers/` diff。新论文 → 新建摘要;已处理 → 除非明确要求不重写。
+
+### 2. paper 摘要 (`wiki/papers/<id>.md`)
+```markdown
+---
+title: <paper title>
+authors: <first author et al.>
+venue: <CVPR 2023 / arXiv 20xx.xxxxx>
+tags: [<kw1>, <kw2>]
+status: compiled
+compiled_at: <YYYY-MM-DD>
+source_path: raw/{{TOPIC}}/...
+---
+## 一句话总结
+## 解决什么问题
+## 核心方法        <!-- 保留关键公式(LaTeX)与图示引用 -->
+## 关键实验结果    <!-- 表格/数字,注明 baseline 对比 -->
+## 局限与 Gap      <!-- 作者自承 + 你观察到的空白 -->
+## 相关工作反链
+- [[concept-xxx]]
+- [[paper-yyy]](提出 A,本文改进 B)
+```
+
+### 3. concept 文章 (`wiki/concepts/<concept>.md`)
+≥3 篇 paper 共享一主题时生成:
+```markdown
+---
+type: concept
+related_papers: [[paper-a]], [[paper-b]], [[paper-c]]
+---
+## 领域现状
+## 前人忽略的问题
+## 共存的挑战
+## 主要解决方法族(按方法分类,不按论文分类)
+## 开放问题 / Gap
+```
+
+### 4. gap 文章 (`wiki/gaps/<gap_id>.md`)
+```markdown
+---
+type: gap
+seeded_from: [[paper-a]], [[concept-b]]
+novelty_verified: false   # 待 wiki-novelty-verifier 验证
+---
+## 问题陈述
+## 为什么前人没解决
+## 可能的切入点
+## 相关文献
+```
+
+### 5. 反链(Obsidian 风格)
+文件内引用用 `[[filename]]`(不带 `.md`);paper 结尾列反链;concept frontmatter 列 `related_papers`。
+
+### 6. Lint
+矛盾检测(同 concept 多篇结论矛盾 → 写进 `## 开放问题`);孤立文件标 `tags: [orphan]`;`compiled_at` 用实际日期。
+
+### 7. 禁止
+❌ 改 `raw/`(只读)/ ❌ 把 raw 原文复制进 wiki / ❌ 写没读过的 paper(凭记忆编造)/ ❌ 空洞综述套话(每句要有具体出处)。
+
+## 远程 OCR 入库管线
+
+PDF → Markdown 的 OCR **必须在远程 GPU 上跑**,本地禁用(CPU 慢且 PaddleOCR 质量漂移,污染一致性)。
+
+**配置走环境变量(密码绝不入库)**:
+```
+$env:MINERU_REMOTE_HOST = "<你的 GPU 服务器 host/IP>"
+$env:MINERU_REMOTE_USER = "<ssh 用户>"
+$env:MINERU_REMOTE_PASS = "<密码,只存本地 memory>"
+python scripts/mineru_remote_ocr.py [input_dir]   # 默认 raw/{{TOPIC}}/
+```
+产物落 `raw/{{TOPIC}}/mineru/`。完成后 `/wiki-compile`。本项目 OCR namespace = `mineru_{{NS}}_*`,与其他项目隔离。
+
+### 🔴 硬规则 / 已知坑
+- ❌ CPU fallback / ❌ 本地跑 mineru / ❌ 换服务器。GPU 占用时脚本干净退出(退出码 4),**不轮询、不 CPU fallback、不 kill 别人进程**。
+- 脚本只抓 input_dir **直接子级**的 `*.pdf`(不递归)—— PDF 在子目录时先平铺到一个临时目录再喂。
+- 共享 GPU/conda env 时**两项目别同时跑 OCR**(会互相 rm -rf;namespace 仅隔离 /tmp 路径不隔离 GPU)。
+- **PPTX** mineru 不吃:优先远程 `soffice --headless --convert-to pdf` 转 PDF 再走管线;本地兜底 `scripts/extract_pptx.py`(版式丢失,需 `PYTHONIOENCODING=utf-8`)。
+- 详细坑见 skill 仓库 `docs/GOTCHAS.md`(含 Windows GBK/UTF-8、pkill 自杀、`%%EOF` 截断等)。
+
+### 凭据
+密码**仅存本地 memory**,脚本读环境变量。memory 模板见 skill `templates/memory/remote-ocr-gpu-server.md.tmpl`,填好后放进本项目 memory 目录,**永不进 repo**。
+
+## code repo 连接规则(通用)
+
+若连接实验代码仓库:🟢 用户明确「读 xxx.py」时按路径 Read,结论默认不写进 wiki(除非说「记进 wiki」);🔴 `/wiki-compile` 及子 agent **不得自动扫描** 代码 / 日志 / checkpoint,不把代码复制进 wiki,不反向写代码仓库。正确接口是**结论**:代码产生结果 → 对话提炼 → 写进 wiki。
+
+## 种子方向
+
+见 `research.md`。`/wiki-init` 会引导你填核心种子文献;之后用 `/wiki-search-latest` 向外扩展(核心 ≠ 全部)。

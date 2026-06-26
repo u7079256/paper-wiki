@@ -1,0 +1,39 @@
+# Course Thread — {{PROJECT_NAME}}
+
+> 本项目:**{{PROJECT_NAME}}** 的课程知识 / 复习库(不是研究课题)。
+> 目的:_(复习 / 助教参考 / 学习,二选一或自填)_
+> 范围:_(可选)由 `raw/{{TOPIC}}/.../Review*.pdf` 或 syllabus 界定;out-of-scope 不留存。_
+> 资源优先级:lecture slide > workshop(lab) > assignment。
+> 启动日期:{{DATE}}
+
+---
+
+## 当前主线
+
+把课程材料(lecture slides + labs + assignments)入库:**每讲一篇笔记**(`wiki/lectures/`)+ `wiki/practice/` → **跨讲主题综合**(`wiki/topics/`)。工作流见 `CLAUDE.md`。
+
+## 材料清单(`/wiki-init` 解压 + 盘点后填)
+
+| 类别(优先级) | 内容 | 位置 |
+|---|---|---|
+| **lecture-slides(高)** | _(填)_ | `raw/{{TOPIC}}/lecture-slides/` |
+| **lab / workshop(中)** | _(填)_ | `raw/{{TOPIC}}/lab/` |
+| assignment(低) | _(填)_ | `raw/{{TOPIC}}/assignment*/` |
+
+> ⚠️ PPTX 需先转 PDF(远程 soffice)或 `extract_pptx.py` 提取,mineru 不直接吃。
+
+## 主题聚类(将来 topic 综合的候选)
+
+- _(填:把 lecture 按主题归族,如 "X 族" ≥3 讲 → 可综合)_
+
+## 下一步 TODO
+
+1. `/wiki-init` —— 解压材料 + 盘点 + 删 CLAUDE.md 顶部 TODO 块
+2. (可选)读范围文档 → 写 `wiki/exam-scope.md`
+3. 远程 GPU OCR 全部 PDF（PPTX 先转 PDF）→ `raw/{{TOPIC}}/mineru/`
+4. `/wiki-compile` 按 scope 编译 → `lectures/` + `topics/` + `practice/`
+5. 复习时用 `/wiki-ask`
+
+## 最近讨论过的问题
+
+- [{{DATE}}] 项目从 claude-wiki-builder(course 变体)bootstrap 建立

@@ -1,4 +1,4 @@
-**English** | [中文](README.md) | [Landing Page](website/index.html#en)
+**English** | [中文](README.md) | [Landing Page](https://u7079256.github.io/paper-wiki/#en)
 
 # paper-wiki
 

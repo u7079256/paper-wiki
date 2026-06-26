@@ -1,4 +1,4 @@
-[English](README.en.md) | **中文** | [项目主页](website/index.html)
+[English](README.en.md) | **中文** | [项目主页](https://u7079256.github.io/paper-wiki/)
 
 # paper-wiki
 

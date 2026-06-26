@@ -16,6 +16,8 @@ Arguments: `$ARGUMENTS`
    - Gap name (no path) → Glob `wiki/gaps/` for a match; if ambiguous, list matches and ask user to pick
    - Empty → spawn in **exploratory** mode (scan all concepts and gaps)
 
+2.5. **Coverage check** — Count compiled papers in `wiki/papers/`. If fewer than 3, warn the user that ideation quality depends on wiki coverage and suggest `/wiki-compile` or `/wiki-search-latest` first. Do not spawn the agent unless the user explicitly confirms.
+
 3. Invoke `wiki-ideator` with:
    - The gap file content (gap-focused) or the keyword `exploratory`
    - Background context from `research.md` (research direction + scope fence)
@@ -34,4 +36,4 @@ Arguments: `$ARGUMENTS`
 ## Hard rules
 - The ideator maps the landscape — it does not pass judgment. Do not summarize its output as "the gap is confirmed/refuted."
 - Never set `novelty_verified: true` on behalf of the user. That's their call, after their own reading.
-- If the wiki has fewer than 3 compiled papers, warn the user: ideation quality depends on wiki coverage. Suggest running `/wiki-compile` or `/wiki-search-latest` first.
+

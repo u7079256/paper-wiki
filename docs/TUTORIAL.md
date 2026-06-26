@@ -6,8 +6,8 @@ GPU). OCR install/use: [`OCR-SETUP.md`](OCR-SETUP.md). The why: [`METHODOLOGY.md
 
 ## The loop (one picture)
 ```
-research:  /wiki-init → import → /wiki-compile → /wiki-ideate → /wiki-search-latest
-                      → /wiki-compile → /wiki-critique → /teach
+research:  /wiki-init → import → /wiki-compile → /wiki-critique → /wiki-ideate
+                      → /wiki-search-latest → /wiki-compile → /teach
 course:    /wiki-init (unpack) → OCR → /wiki-compile → /wiki-critique → /teach
 ```
 

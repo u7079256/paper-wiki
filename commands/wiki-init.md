@@ -25,19 +25,20 @@ Read `CLAUDE.md` 顶部 ~15 行。
 4. 把 `research.md` 里所有 `_(填)_` 占位替换为真实内容;在「最近讨论过的问题 / 当前进度」追加一条带今天日期的记录。
 
 **research 变体**额外:把 CLAUDE.md 末尾「## 种子方向」与 research.md 的种子表填成本项目种子。把步骤 1 收集到的 ⑤ Adjacent OK 和 ⑥ Exclusions 写进 research.md 的「## Scope fence」;设 `lifecycle_state: BUILDING`。
-**course 变体**额外:见步骤 3 的解压 + 盘点结果填进 research.md 的「材料清单」。
 
 ## 步骤 3:入库(先给完整方案让用户拍板,再执行)
 
 ### research 变体
-问用户是否现在启动「一篇一个 agent」并行入库。若是:对每篇**带 arXiv ID** 的种子并发 spawn general-purpose agent,严格按 CLAUDE.md 编译规则:
-- WebFetch `arxiv.org/abs/<id>` 核对标题与该 paper 对得上;`curl.exe -L -o raw/<topic>/<id>.pdf arxiv.org/pdf/<id>` 下载,Bash `tail -c 30` 验 `%%EOF`
-- 逐页读完整篇(Read ≤20 页/次,分次读全含 appendix;Read 渲染 PDF 失败则用 PyMuPDF/pdftotext),写 `wiki/papers/<id>.md`,公式 LaTeX、数字照原文
-- **铁律**:禁推断/推测/凭记忆补全;身份不符或下载失败 → 如实报告,不写摘要
+问用户是否现在启动「一篇一个 agent」并行入库。若是:对每篇**带 arXiv ID** 的种子并发 spawn general-purpose agent。Each ingest agent must read CLAUDE.md section for the note schema and follow it exactly. Additional init-specific rules:
+1. WebFetch `arxiv.org/abs/<id>` to verify title matches
+2. `curl.exe -L -o raw/<topic>/<id>.pdf arxiv.org/pdf/<id>` + Bash `tail -c 30` to verify `%%EOF`
+3. Read the full PDF including appendix before writing
+
+Identity mismatch or download failure → report honestly, do not write a note.
 - 无 arXiv 的种子(博客/项目页):WebFetch 存 `.md` 入 `raw/<topic>/`,不走 OCR
 
 ### course 变体
-1. **解压材料**(无歧义可直接做):把 `*resources*.zip` 解压进 `raw/<topic>/`,保留其原有子目录结构;清掉 macOS 垃圾(`__MACOSX/`、`.DS_Store`、`._*`);原 zip 保留。列清单(PDF / PPTX / ipynb 数)。
+1. **解压材料**:把 `*resources*.zip` 解压进 `raw/<topic>/`,保留其原有子目录结构;清掉 macOS 垃圾(`__MACOSX/`、`.DS_Store`、`._*`);原 zip 保留。列清单(PDF / PPTX / ipynb 数)。
 2. **盘点 + 填 research.md 材料清单**;若有范围文档,读它 → 起草 `wiki/exam-scope.md`(可选)。
 3. 给入库方案让用户确认:**PDF** 走远程 GPU OCR;**PPTX** 先远程 `soffice --headless --convert-to pdf` 转 PDF(本地无 soffice 时用 `scripts/extract_pptx.py` 兜底,设 `PYTHONIOENCODING=utf-8`);脚本只抓直接子级 PDF(不递归)→ 先平铺到临时目录。
 4. 确认后 OCR → `/wiki-compile` 编译 lecture/topic/practice。

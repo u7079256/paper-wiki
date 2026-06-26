@@ -64,5 +64,5 @@ User can run these to fetch:
 - ❌ Don't import papers yourself. Just recommend; user decides.
 - ✅ If a paper is on arXiv AND has a conference venue, note both.
 - ✅ Max 10 candidates per search. Too many dilutes signal.
-- ✅ If topic is ambiguous, ask user to clarify before searching.
+- ✅ If topic is ambiguous, return an error message to the caller stating the topic is ambiguous and listing what clarification is needed; do not proceed with the search.
 - ✅ No fence section in research.md = skip all fence checks (backward compatible).

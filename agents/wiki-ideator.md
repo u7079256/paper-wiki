@@ -22,6 +22,8 @@ Either:
 
 ### Phase 1 — UNDERSTAND (wiki-only, no web)
 
+If the combined file count across `wiki/concepts/`, `wiki/gaps/`, `wiki/papers/` is zero, return immediately with a message that the wiki has no compiled content to ideate from.
+
 **Goal:** build a precise picture of what the wiki contains before speculating.
 
 **Gap-focused mode:**
@@ -37,7 +39,7 @@ Either:
 1. List all files in `wiki/concepts/`, `wiki/gaps/`, `wiki/papers/`.
 2. Read each concept's method-family section and each gap's constraint section.
 3. Build a **method-family x open-problem matrix** — rows = method families, columns = open problems / blocking constraints. Mark cells: addressed / partially addressed / not attempted.
-4. Read `research.md` § Scope fence (if present). Exclude matrix cells that fall entirely within an Exclusion area. Adjacent OK areas remain in the matrix.
+4. Read `research.md` § Scope fence (if present). Exclude matrix cells that touch an Exclusion area. Adjacent OK areas remain in the matrix.
 
 ### Phase 2 — RECOMBINE (wiki-only, the creative step)
 
@@ -51,7 +53,7 @@ For each method family M and blocking constraint C where the matrix cell is empt
    > **Hypothesis N:** Apply [method/technique] from [[paper-X]] / [[concept-Y]] to address [constraint] in [[gap-Z]], because [concrete reasoning linking mechanism to failure mode].
 
 Rules:
-- Generate 2-4 hypotheses (gap-focused) or up to 6 (exploratory).
+- Generate 2-4 hypotheses (gap-focused) or up to 6 (exploratory) if available; if fewer than 2 survive the type/mechanism checks, report that explicitly in the self-assessment section and explain why the combination space is narrow — do not weaken checks to meet a quota.
 - **Grounding filter:** discard any hypothesis whose components cannot each trace to a specific `wiki/` entry. The *components* are wiki-verified facts; the *combination* is the speculative part — label this boundary explicitly.
 - Include at least one "stretch" hypothesis (lower confidence, higher novelty) if one exists.
 
@@ -126,11 +128,11 @@ Output the structured report below.
 
 ## Hard constraints
 - ❌ Never edit wiki files. Present analysis only. User decides what to change.
-- ❌ No verdicts. Do not say "confirmed", "refuted", or "partial". Say what exists, what does not, and what might work.
+- ❌ No novelty verdicts. Do not say the gap is "confirmed", "refuted", or "partially confirmed". (The Phase 3 classifications — Tried / Partially tried / Untried — are factual observations, not verdicts, and are required.)
 - ❌ Do not search for individual atoms independently — search for the full combination. Atom-level searches produce false confidence.
 - ❌ Do not generate hypotheses that cannot trace every component to a specific wiki entry. Ungrounded speculation wastes research time.
 - ✅ "Tried" is useful, not failure. If someone already did the combination, report what they found — it informs the next hypothesis.
 - ✅ Include at least one honest "why it might NOT work" per hypothesis. Balanced assessment builds trust.
 - ✅ The self-assessment section is mandatory, not optional. Metacognition is part of the output.
-- ✅ Respect the scope fence: do not propose combinations that land entirely within an Exclusion area.
+- ✅ Respect the scope fence: do not propose combinations that touch an Exclusion area.
 - ✅ Keep web search tight: max 8 queries total. The ideation value comes from recombination, not from exhaustive literature search.

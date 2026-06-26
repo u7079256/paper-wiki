@@ -43,9 +43,9 @@ Follow CLAUDE.md: read the whole thing, cite, never invent.
 Claude reads the real source (so the note is faithful, not from memory) and writes
 `wiki/papers/attention-is-all-you-need.md` following the paper schema.
 
-## 4. Query it (read-only)
+## 4. Query it
 ```
-/wiki-ask What is the core contribution and what are the key components?
+/teach What is the core contribution and what are the key components?
 ```
 You get an answer grounded **only** in the compiled note, with citations; anything
 not in the wiki is reported as "not in wiki".

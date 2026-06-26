@@ -105,7 +105,7 @@ Claude Code 从两个位置加载命令：
 
 4. 查询编译好的 wiki：
    ```
-   /wiki-ask What is the core contribution and what are the key components?
+   /teach What is the core contribution and what are the key components?
    ```
    回答只基于已编译的笔记，附带引用；wiki 里没有的内容会明确告知"not in wiki"。
 
@@ -120,10 +120,11 @@ Claude Code 从两个位置加载命令：
 |---|---|
 | `/wiki-init` | 初始化（仅首次）：填写主题和种子论文（research）/ 解包并清点材料（course） |
 | `/wiki-compile` | 读取 `raw/` 中的新材料，编译笔记，综合概念或主题 |
-| `/wiki-ask <问题>` | 只读查询：仅从已编译的 wiki 中回答，标注出处，wiki 里没有就说没有 |
 | `/wiki-search-latest <主题>` | （research）搜索最新相关论文 |
 | `/wiki-critique <文件>` | 对抗性审查：找漏洞、过度声明、公式错误 |
 | `/wiki-verify-novelty <gap>` | （research）验证声称的研究空白是否真的没人做过 |
+
+> 查询 wiki 用 `/teach <问题>`——它会自动读 wiki 笔记、标出处、展开交互式教学，wiki 里没有的内容会明确告知。
 
 > 完整的命令教程（research + course 两个变体）见 **[docs/TUTORIAL.md](docs/TUTORIAL.md)**。
 

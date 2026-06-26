@@ -92,11 +92,12 @@ tutorial/docs use; the **plugin** exposes them as `/paper-wiki:wiki-*`. Same com
 | command | what it does |
 |---|---|
 | `/wiki-init` | one-time: fill topic + seeds (research) / unpack + inventory (course) |
-| `/wiki-ask <q>` | read-only query: answers only from the compiled wiki, cites sources, says "not in wiki" when absent |
 | `/wiki-compile` | read new `raw/` material → write paper/lecture notes → synthesize concepts/topics |
 | `/wiki-search-latest <topic>` | (research) find recent papers to import |
 | `/wiki-critique <file>` | adversarial review: holes, overclaims, wrong formulas |
 | `/wiki-verify-novelty <gap>` | (research) check a claimed gap against prior work |
+
+> To query the wiki, use `/teach <question>` — it reads wiki notes, cites sources, and teaches interactively. Absent content is explicitly flagged.
 
 > Full command-by-command walkthrough (both variants): **[docs/TUTORIAL.md](docs/TUTORIAL.md)**.
 

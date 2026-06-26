@@ -40,10 +40,10 @@ for d in "${WIKIDIRS[@]}"; do mkdir -p "$NEW_PATH/wiki/$d"; : > "$NEW_PATH/wiki/
 
 # commands / agents (variant-aware subset)
 if [ "$VARIANT" = research ]; then
-  CMDS=(wiki-init wiki-compile wiki-ask wiki-search-latest wiki-critique wiki-verify-novelty)
+  CMDS=(wiki-init wiki-compile wiki-search-latest wiki-critique wiki-verify-novelty)
   AGENTS=(wiki-searcher wiki-critic wiki-novelty-verifier)
 else
-  CMDS=(wiki-init wiki-compile wiki-ask wiki-critique)
+  CMDS=(wiki-init wiki-compile wiki-critique)
   AGENTS=(wiki-critic)
 fi
 for c in "${CMDS[@]}";   do cp "$SKILL_ROOT/commands/$c.md" "$NEW_PATH/.claude/commands/"; done

@@ -61,7 +61,7 @@ schemas:
 commands:
   wiki-init:           {once: true, precondition: "fresh bootstrap (TODO banner present)", steps: "detect variant -> AskUserQuestion -> fill CLAUDE.md+research.md (delete TODO banner) -> optional first ingest", never_rerun: true}
   wiki-compile:        {behavior: "see state_machine.compile", schema_from: "CLAUDE.md"}
-  wiki-ask:            {readonly: true, steps: "read research.md + relevant wiki -> answer ONLY from wiki, cite each -> say 'not in wiki' if absent", edits: "none unless user says 'write to wiki'"}
+  # wiki-ask: RETIRED — replaced by /teach integration. /teach reads research.md + greps wiki/ for relevant notes, cites sources, and says 'not in wiki' if absent. See CLAUDE.md for project-level teach rules.
   wiki-search-latest:  {variant: research, agent: wiki-searcher, output: "<=10 candidate table", rule: "never import without user confirm"}
   wiki-critique:       {agent: wiki-critic, output: "severity-tagged findings", edits: "never; user decides"}
   wiki-verify-novelty: {variant: research, agent: wiki-novelty-verifier, output: "confirmed | partial | refuted", rule: "never set novelty_verified=true itself; user edits"}

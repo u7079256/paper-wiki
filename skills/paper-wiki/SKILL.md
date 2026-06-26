@@ -23,7 +23,7 @@ battle-tested workflow + scaffolding to build and run one.
 - "Bootstrap a new wiki project for <topic>."
 - Running the loop: ingest → OCR → compile → concept/topic synthesis →
   (research) novelty-gap + verification, or (course) exam-scope + practice.
-- Querying an existing wiki read-only (`/wiki-ask`).
+- Querying an existing wiki interactively (`/teach` — reads wiki, cites sources, teaches concepts).
 
 ## Two variants
 | | **research** | **course** |
@@ -63,8 +63,9 @@ inventory the materials (course).
 - `scripts/` — `bootstrap_new_wiki.ps1`, `mineru_local_ocr.py` (local GPU),
   `mineru_remote_ocr.py` (your own SSH GPU box; env-driven, namespaced),
   `extract_pptx.py` (PPTX fallback). OCR setup: `docs/OCR-SETUP.md`.
-- `commands/` — the slash commands (`/wiki-init`, `/wiki-compile`, `/wiki-ask`,
+- `commands/` — the slash commands (`/wiki-init`, `/wiki-compile`,
   `/wiki-search-latest`, `/wiki-critique`, `/wiki-verify-novelty`).
+  Read-only querying is handled by `/teach` (integrated, not a separate command file).
 - `agents/` — sub-agents (`wiki-searcher`, `wiki-critic`, `wiki-novelty-verifier`).
 - `templates/{research,course}/` — `CLAUDE.md` / `research.md` / `README.md`.
 - `templates/memory/` — placeholder memory files (GPU server, user profile, style).

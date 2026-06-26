@@ -7,8 +7,8 @@ GPU). OCR install/use: [`OCR-SETUP.md`](OCR-SETUP.md). The why: [`METHODOLOGY.md
 ## The loop (one picture)
 ```
 research:  /wiki-init → import → /wiki-compile → /wiki-search-latest → /wiki-compile
-                      → /wiki-critique → /wiki-verify-novelty → /wiki-ask
-course:    /wiki-init (unpack) → OCR → /wiki-compile → /wiki-critique → /wiki-ask
+                      → /wiki-critique → /wiki-verify-novelty → /teach
+course:    /wiki-init (unpack) → OCR → /wiki-compile → /wiki-critique → /teach
 ```
 
 ## Conventions in this tutorial
@@ -98,11 +98,13 @@ new gaps may surface. The wiki grows in rounds.
 - **Tip:** it **won't** set `novelty_verified: true` itself — it proposes; you edit.
   It errs toward *finding* overlap, so a “confirmed” verdict is meaningful.
 
-## A8. `/wiki-ask` — query (read-only) / drive revision
-- **What:** answers **only** from the compiled wiki, cites each claim, says “not in
-  wiki” for anything absent. Never edits unless you say “write to wiki”.
+## A8. `/teach` — query the wiki / interactive learning
+- **What:** reads `research.md` for context, greps `wiki/` for relevant notes,
+  follows `[[links]]` one hop, then answers. Factual queries get a short cited
+  answer; conceptual questions trigger interactive teaching. Always cites wiki
+  file paths + section names and marks anything absent as “not in wiki”.
 - **When:** any time you want to *use* the knowledge base (incl. new sessions).
-- **Paste to Claude:** `/wiki-ask What distinguishes my approach from the nearest baseline?`
+- **Paste to Claude:** `/teach What distinguishes my approach from the nearest baseline?`
 - **Tip:** if it says “not in wiki”, that source isn't compiled yet — import +
   `/wiki-compile` it (don't let it answer from general knowledge).
 
@@ -154,11 +156,12 @@ input dir — stage subfolder PDFs flat first.
 ```
 Checks the note against the source for misread formulas or overstated claims.
 
-## B5. `/wiki-ask` — revise / look things up
+## B5. `/teach` — revise / look things up
 ```
-/wiki-ask Walk me through the ELBO derivation from the diffusion lecture, with the slide it's on.
+/teach Walk me through the ELBO derivation from the diffusion lecture, with the slide it's on.
 ```
-Answers only from the compiled notes, with citations.
+Answers from the compiled notes with citations; conceptual questions trigger
+interactive teaching with follow-up questions.
 
 ---
 
@@ -174,7 +177,7 @@ Answers only from the compiled notes, with citations.
 | symptom | fix |
 |---|---|
 | `/wiki-*` not found in a folder | it's project-scoped — you're not in a wiki project, or install commands globally (README → “Where the slash commands live”) |
-| `/wiki-ask` says “not in wiki” | that source isn't compiled — import + `/wiki-compile` it |
+| `/teach` says “not in wiki” | that source isn't compiled — import + `/wiki-compile` it |
 | OCR errors / exit 2/3/4 | see [`OCR-SETUP.md`](OCR-SETUP.md) §7 |
 | two projects' OCR clash | shared GPU — run them one at a time |
 | `/wiki-search-latest` / `/wiki-verify-novelty` missing | you're in a **course** project; they're research-only by design |

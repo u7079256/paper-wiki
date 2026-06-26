@@ -37,10 +37,19 @@
 | 联网搜最新论文 | `/wiki-search-latest <主题>` | `wiki-searcher` |
 | 挑漏洞 / 对抗审稿 | `/wiki-critique <file>` | `wiki-critic` |
 | 验证研究空白新颖性 | `/wiki-verify-novelty <gap>` | `wiki-novelty-verifier` |
-| 只读查询(复用知识库) | `/wiki-ask <问题>` | 主会话 |
 | 新项目初始化(只跑一次) | `/wiki-init` | 主会话 |
 
 **典型闭环**:`/wiki-search-latest` → 用户确认导入 → 远程 OCR → `/wiki-compile`(写 paper/concept/gap)→ `/wiki-critique` → `/wiki-verify-novelty` → 回写 `novelty_verified: true`。
+
+## 用 /teach 读 wiki
+
+直接向 /teach 提问即可查询和理解 wiki 内容。teach 在本项目中自动遵守以下规则：
+- 先读 research.md 获取项目上下文
+- grep wiki/ 寻找相关笔记，顺 [[link]] 追一层
+- 事实性查询（"哪些论文讨论了 X？"）直接给带引用的简短回答
+- 理解性问题（"为什么 X 在 Y 上失败？"）展开交互式教学
+- 始终标注出处（wiki 文件路径 + 节名），明确区分 wiki 内容和推理延伸
+- wiki 里没有的内容明确说明"wiki 中未收录"
 
 ## Claude Code 编译规则(`/wiki-compile`)
 

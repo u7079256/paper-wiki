@@ -39,10 +39,18 @@
 | 命令 | 作用 |
 |---|---|
 | `/wiki-compile` | 把 raw/ 新材料编译成 lecture / topic / practice 笔记 |
-| `/wiki-ask <问题>` | 只读查询已编译 wiki,逐条标出处,没有的说没有 |
 | `/wiki-critique <文件>` | 对抗式查错(公式 / 结论是否写错) |
 
 > 课程库**不向外扩展**,故 `wiki-search-latest` / `wiki-verify-novelty` 及其 agent 未安装。`/wiki-critique` 可 spawn `wiki-critic` 查错。
+
+## 用 /teach 复习
+
+复习时直接向 /teach 提问。teach 在本项目中自动遵守以下规则：
+- 先读 research.md 获取课程上下文
+- grep wiki/ 寻找相关笔记，顺 [[link]] 追一层
+- 事实性查询（"哪些讲义提到了 X？"）直接给带引用的回答
+- 理解性问题（"为什么 X 成立？推导一遍"）展开交互式教学
+- 始终标注出处（wiki 文件路径 + 节名）
 
 ## Claude Code 编译规则(`/wiki-compile`)
 

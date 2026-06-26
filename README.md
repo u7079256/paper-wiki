@@ -27,6 +27,13 @@ permission prompts**:
 That registers the `/paper-wiki:*` commands, the sub-agents, and the skill in every
 session. Update later with `/plugin marketplace update paper-wiki`; manage via `/plugin`.
 
+> **SSH host-key error?** The plugin system clones via SSH. If you see
+> `No ED25519 host key is known for github.com`, run once:
+> ```
+> ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+> ```
+> then retry the install.
+
 > Don't want a plugin? You can still `git clone` this repo and run the bootstrap
 > below directly — bootstrapped projects are self-contained and don't need the
 > plugin installed (their `/wiki-*` commands live in the project's own `.claude/`).

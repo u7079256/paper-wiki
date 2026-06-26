@@ -41,6 +41,16 @@ variants:
     extra: "wiki/gaps/"
     note_types: [paper, concept, gap]
     outward_enabled: [wiki-search-latest, wiki-verify-novelty]
+    scope_fence:
+      lifecycle_state: {enum: [BUILDING, ACTIVE, FROZEN], default: BUILDING, location: "research.md § Scope fence"}
+      core_focus: "1-2 sentences anchoring what the project IS"
+      adjacent_ok: ["area: reason — look off-topic but ARE relevant; never flagged by agents"]
+      exclusions: ["area: reason (temporal supersession | categorical exclusion) — agents mark [FENCE]"]
+    lifecycle_transitions:
+      BUILDING_to_ACTIVE: "compile round produces 0 new concepts + 0 new gaps => suggest (user decides)"
+      ACTIVE_to_FROZEN: "user explicitly freezes; no additions unless reopened"
+      FROZEN_to_ACTIVE: "user explicitly reopens"
+      any_to_BUILDING: "user explicitly requests expansion round"
   course:
     main: ["wiki/lectures/", "wiki/practice/"]
     synthesis: "wiki/topics/"
@@ -67,7 +77,7 @@ commands:
   wiki-verify-novelty: {variant: research, agent: wiki-novelty-verifier, output: "confirmed | partial | refuted", rule: "never set novelty_verified=true itself; user edits"}
 
 agents:
-  wiki-searcher:        {tools: [WebSearch, WebFetch, Read, Grep, Glob], rule: "verify each arxiv id by fetching abstract; never fabricate ids/papers"}
+  wiki-searcher:        {tools: [WebSearch, WebFetch, Read, Grep, Glob], rule: "verify each arxiv id by fetching abstract; never fabricate ids/papers; check scope fence exclusions and mark [FENCE]; report saturation signal"}
   wiki-critic:          {tools: [Read, Grep, Glob, WebSearch], stance: adversarial, severities: ["🔴 blocking", "🟡 weak", "🔵 suggestive"], rule: "cite the lines critiqued; no edits"}
   wiki-novelty-verifier: {tools: [WebSearch, WebFetch, Read, Grep, Glob], bias: "err toward finding overlap"}
 
@@ -98,6 +108,7 @@ decision_rules:
   - "PDFs in subfolders => stage flat temp dir before OCR"
   - ">=3 notes share a theme => create synthesis (concept/topic), organized by method"
   - "gap recurs across >=2 sources OR user-flagged => write gap (novelty_verified=false)"
+  - "new concept touches a research Exclusion => pause and ask user before writing"
   - "course material out of scope => do NOT compile into wiki/"
   - "irreversible/outward action => confirm with user first"
   - "high cost of misreading deliverable shape => AskUserQuestion before mass work"

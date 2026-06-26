@@ -69,6 +69,11 @@ inventory the materials (course).
 - `agents/` — sub-agents (`wiki-searcher`, `wiki-critic`, `wiki-novelty-verifier`).
 - `templates/{research,course}/` — `CLAUDE.md` / `research.md` / `README.md`.
 - `templates/memory/` — placeholder memory files (GPU server, user profile, style).
+- **Scope fence** — `research.md` § Scope fence defines core focus, adjacent-OK
+  areas, and hard exclusions (temporal supersession or categorical). Agents respect
+  it: `wiki-searcher` marks excluded candidates `[FENCE]`, `wiki-compile` pauses
+  before creating concepts that cross exclusion boundaries. Paired with a lifecycle
+  state (`BUILDING` / `ACTIVE` / `FROZEN`) that tracks wiki maturity.
 - `docs/METHODOLOGY.md` — the why/how in depth.
 - `docs/GOTCHAS.md` — hard-won pitfalls (Windows UTF-8/GBK, OCR non-recursive glob,
   pkill self-kill, PPTX, %%EOF truncation, …). **Read before editing scripts.**

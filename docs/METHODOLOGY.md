@@ -79,7 +79,43 @@ lecture slides > labs > assignments. Optional enhancements proven useful:
 - **deep-dives** — for high-value topics, go back to the raw OCR and write full
   derivations + worked examples + exam traps.
 
-## 9. Iterate, then audit
+## 9. Scope management: why wikis drift and how the fence works
+
+Research wikis drift along two axes:
+
+- **Task proximity.** A paper on motion generation may share baselines with your
+  avatar project, but it solves a different problem. Without a boundary you end up
+  compiling tangential work that dilutes the concept layer.
+- **Temporal relevance.** NeRF-based methods for a task now dominated by 3DGS are
+  not wrong — they're superseded. Keeping them in scope inflates the gap analysis
+  with stale comparisons.
+
+The **scope fence** in `research.md` addresses both. It has three tiers:
+
+1. **Core focus** — 1-2 sentences anchoring what the wiki IS about. Every concept
+   should trace back to this.
+2. **Adjacent OK** — areas that look off-topic but ARE relevant (e.g., "head-only
+   avatar: subproblem, shared baselines"). These are never flagged by any agent.
+3. **Exclusions** — hard boundaries, each with a reason that distinguishes temporal
+   supersession ("NeRF: superseded by 3DGS for this task") from categorical
+   exclusion ("motion generation: different output modality"). `wiki-searcher`
+   marks candidates from excluded areas as `[FENCE]`; `wiki-compile` pauses before
+   creating concepts that cross an exclusion boundary.
+
+The design is **exclusion-first**: anything not explicitly excluded is allowed.
+This keeps the fence small and avoids false negatives from an over-specified
+inclusion list. An empty fence means no filtering — backward compatible with older
+projects.
+
+The fence pairs with a **lifecycle state** (`BUILDING` → `ACTIVE` → `FROZEN`):
+
+- **BUILDING** — actively expanding; `wiki-search-latest` runs freely.
+- **ACTIVE** — using the wiki; add papers only on demand. A compile round that
+  produces zero new concepts and zero new gaps suggests this transition.
+- **FROZEN** — no additions unless explicitly reopened. Useful for camera-ready
+  periods or archived projects.
+
+## 10. Iterate, then audit
 Build in rounds (seed → expand → synthesize). After each substantial round, audit
 for consistency rather than trusting the fan-out blindly. The wiki is only as good
 as its weakest unverified claim — so verify, cite, and link relentlessly.

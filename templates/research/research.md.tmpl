@@ -19,6 +19,27 @@ _(描述要解决什么问题、技术路线大致是什么)_
 
 > ⚠️ 核心 ≠ 全部:种子只是起点;用 `/wiki-search-latest` 向外扩展相关工作与 baseline。
 
+## Scope fence
+
+lifecycle_state: BUILDING
+
+### Core focus
+<!-- 1-2 sentences: what this wiki IS about -->
+{{TOPIC_SENTENCE}}
+
+### Adjacent OK
+<!-- Areas that look off-topic but ARE relevant. Format: "area: reason" -->
+<!-- Example: "head-only avatar: subproblem, shared baselines" -->
+
+### Exclusions
+<!-- Areas DEFINITELY out. Each with a reason (temporal supersession or categorical exclusion). -->
+<!-- Example: "NeRF-based methods: superseded by 3DGS for this task" -->
+<!-- Example: "motion generation: different output modality" -->
+
+> Agents read this fence: wiki-searcher marks candidates from excluded areas as [FENCE],
+> wiki-compile pauses before creating concepts that cross exclusion boundaries.
+> Adjacent OK areas are never flagged. Empty fence = no filtering.
+
 ## 最近讨论过的问题
 
 - [{{DATE}}] 项目从 paper-wiki(research 变体)bootstrap 建立

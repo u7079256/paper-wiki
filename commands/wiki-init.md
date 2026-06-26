@@ -13,7 +13,7 @@ Read `CLAUDE.md` 顶部 ~15 行。
 
 ## 步骤 1:收集本项目信息(用 AskUserQuestion,不许凭印象编造)
 
-**research 变体**:问 ① 课题一句话 ② 投稿目标 ③ 核心种子文献(每篇:工作名 / 角色 / arXiv ID 或 URL)④ 数据集(可选)。
+**research 变体**:问 ① 课题一句话 ② 投稿目标 ③ 核心种子文献(每篇:工作名 / 角色 / arXiv ID 或 URL)④ 数据集(可选)⑤ 有没有看似不相关、但其实和本课题有关的领域?(列 2-5 个,每个附理由;可不填)⑥ 有没有明确排除在外的领域?(列 2-5 个,每个附理由;两种类型:(a) 时间淘汰,如 NeRF 被 3DGS 取代;(b) 类别排除,如 motion generation 属于不同输出模态)
 **course 变体**:问 ① 这门课是什么(名称 / 性质)② 目的(复习 / 助教 / 学习)③ 材料在哪(常见:项目根目录有个 `*resources*.zip`,或某文件夹)④ (可选)范围由哪份文档界定(如 `Review lecture`)。
 
 ## 步骤 2:把文档落到本项目(先给改动方案,确认后再写)
@@ -24,7 +24,7 @@ Read `CLAUDE.md` 顶部 ~15 行。
 3. 其余**通用规则**(目录约定、多 agent、编译规则、远程 OCR 管线、code repo 规则)**一字不动**。
 4. 把 `research.md` 里所有 `_(填)_` 占位替换为真实内容;在「最近讨论过的问题 / 当前进度」追加一条带今天日期的记录。
 
-**research 变体**额外:把 CLAUDE.md 末尾「## 种子方向」与 research.md 的种子表填成本项目种子。
+**research 变体**额外:把 CLAUDE.md 末尾「## 种子方向」与 research.md 的种子表填成本项目种子。把步骤 1 收集到的 ⑤ Adjacent OK 和 ⑥ Exclusions 写进 research.md 的「## Scope fence」;设 `lifecycle_state: BUILDING`。
 **course 变体**额外:见步骤 3 的解压 + 盘点结果填进 research.md 的「材料清单」。
 
 ## 步骤 3:入库(先给完整方案让用户拍板,再执行)

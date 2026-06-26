@@ -30,6 +30,19 @@ For each new source:
    is absent, write "— 原文未涉及" rather than guess.
 4. Use `[[...]]` for cross-links to other notes.
 
+### Step 3.5 — Scope fence check (research variant only)
+Read `research.md` § Scope fence (if present). Individual paper compilation is
+**never blocked** by the fence. But when creating a **new** concept that touches an
+Exclusion area, **pause and ask the user** before writing it — the exclusion may be
+intentional. Adjacent OK areas are never flagged; no fence section = skip this step.
+
+After each compile round, report:
+```
+New concepts: X.  New gaps: Y.
+```
+If both are zero, suggest transitioning `lifecycle_state` from `BUILDING` to
+`ACTIVE` (the user decides; don't change it unilaterally).
+
 ### Step 4 — Synthesis
 When ≥3 notes share a theme, create/update the synthesis article (concept for
 research, topic for course) per CLAUDE.md — organized **by method, not by source**.

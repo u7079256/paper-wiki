@@ -1,56 +1,142 @@
-**English** | [中文](README.md) | [Landing Page](https://u7079256.github.io/paper-wiki/#en)
+<p align="center">
+  <h1 align="center">📚 paper-wiki</h1>
+  <p align="center"><b>Drop papers in. Get a knowledge graph out.</b></p>
+  <p align="center">Not RAG — an LLM Wiki. Claude reads every page of every paper, compiles cited notes, and synthesizes cross-source concepts and research gaps.</p>
+</p>
 
-# paper-wiki
+<p align="center">
+  <a href="https://u7079256.github.io/paper-wiki/#en"><img src="https://img.shields.io/badge/Landing_Page-blue?style=for-the-badge" alt="Landing Page"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT License"></a>
+  <a href="https://claude.ai/code"><img src="https://img.shields.io/badge/Claude_Code-Plugin-8A2BE2?style=for-the-badge" alt="Claude Code Plugin"></a>
+</p>
 
-A **Claude Code plugin** for building an **LLM Wiki** — a structured,
-reverse-linked knowledge base that Claude *actively compiles* from your source
-PDFs / slides, rather than retrieving chunks at query time (RAG).
+<p align="center">
+  <a href="README.md">中文</a> · <b>English</b> · <a href="https://u7079256.github.io/paper-wiki/#en">Landing Page</a> · <a href="docs/WALKTHROUGH.md">Walkthroughs</a> · <a href="docs/TUTORIAL.md">Tutorial</a> · <a href="examples/QUICKSTART.md">Quickstart</a>
+</p>
 
-It packages a battle-tested workflow proven across multiple real-world research and
-course wiki builds: **read every source page-by-page (remote-GPU
-OCR) → write faithful, cited, no-hallucination notes (one sub-agent per source) →
-synthesize cross-source concepts → adversarially review → keep the whole graph
-reverse-linked and consistent.**
+---
 
-Two variants out of the box:
-- **research** — papers → `papers/` → `concepts/` → `gaps/` (novelty analysis,
-  arXiv search, ideation). The research variant includes a scope fence in
-  `research.md` (core focus, adjacent-OK areas, exclusions) that agents use to
-  filter candidates automatically.
-- **course** — lecture slides / labs / assignments → `lectures/` + `practice/` →
-  `topics/` → optional `exam-scope.md` spine (exam revision).
+## ⚡ Install (one command)
 
-## Install (one command — it's a plugin)
-This repo is a **Claude Code plugin + marketplace**. Install it the normal way —
-Claude Code fetches and manages it; **no manual copying into `~/.claude/`, no
-permission prompts**:
 ```
 /plugin marketplace add u7079256/paper-wiki
 /plugin install paper-wiki@paper-wiki
 ```
-That registers the `/paper-wiki:*` commands, the sub-agents, and the skill in every
-session. Update later with `/plugin marketplace update paper-wiki`; manage via `/plugin`.
 
-> **SSH host-key error?** The plugin system clones via SSH. If you see
-> `No ED25519 host key is known for github.com`, run once:
-> ```
-> ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
-> ```
-> then retry the install.
+All `/paper-wiki:wiki-*` commands are now globally available. Update later: `/plugin marketplace update paper-wiki`.
 
-> Don't want a plugin? You can still `git clone` this repo and run the bootstrap
-> below directly — bootstrapped projects are self-contained and don't need the
-> plugin installed (their `/wiki-*` commands live in the project's own `.claude/`).
+<details>
+<summary>💡 SSH error? / Don't want a plugin?</summary>
 
-## Bootstrap a new wiki project
+**SSH host-key error**: run once:
+```
+ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+```
+
+**No plugin**: `git clone` this repo, run the bootstrap script — bootstrapped projects are self-contained with their own `/wiki-*` commands.
+</details>
+
+---
+
+## 🧠 Core Concept: LLM Wiki vs RAG
+
+```
+RAG:   query → retrieve chunks → stitch answer → quality depends on chunking & recall
+Wiki:  sources → read page-by-page → compile notes → synthesize concepts → knowledge graph
+```
+
+| | RAG | LLM Wiki |
+|---|---|---|
+| When it reads | At query time | At compile time (once) |
+| Knowledge form | Vector fragments | Structured notes + reverse links |
+| Cross-source synthesis | None | Auto-generated concepts + gaps |
+| Trustworthiness | May decontextualize | Every claim cites its source |
+
+---
+
+## 🔄 Workflow at a Glance
+
+```
+/wiki-init → import papers → /wiki-compile → /wiki-critique → /wiki-ideate
+                                   ↓                              ↓
+                             /wiki-search-latest ←── coverage gaps ┘
+                                   ↓
+                             /wiki-compile → /teach (deep understanding)
+```
+
+> **Scope fence** guards boundaries: define core focus, adjacent-OK areas, and hard exclusions — agents filter automatically.
+> **Lifecycle** controls pace: `BUILDING` → `ACTIVE` → `FROZEN` — the wiki knows when to stop growing.
+
+---
+
+## 📋 Two Variants
+
+| | **research** | **course** |
+|---|---|---|
+| Sources | Papers (arXiv / web) | Slides / labs / assignments |
+| Notes layer | `wiki/papers/` | `wiki/lectures/` + `wiki/practice/` |
+| Synthesis | `wiki/concepts/` | `wiki/topics/` |
+| Unique | `wiki/gaps/` + `/wiki-ideate` | `wiki/exam-scope.md` |
+| Outward search | `/wiki-search-latest` | — |
+| Scope fence | ✅ | — |
+
+---
+
+## 🛠️ Command Reference
+
+| Command | What it does |
+|---|---|
+| `/wiki-init` | One-time setup: topic, seeds, scope fence |
+| `/wiki-compile` | Compile `raw/` material → notes → concepts → gaps |
+| `/wiki-search-latest <topic>` | Find recent papers (research) |
+| `/wiki-critique <file>` | Adversarial review: holes, overclaims, wrong formulas |
+| `/wiki-ideate <gap>` | Discover untried method-problem combinations (research) |
+| `/teach <question>` | Query + interactive teaching: cross-paper tables, gap dashboards |
+
+---
+
+## 🚀 Quickstart (no GPU needed, ~5 min)
+
+```powershell
+# 1. Bootstrap a project
+.\scripts\bootstrap_new_wiki.ps1 -NewPath D:\demo-wiki -Topic demo `
+    -ProjectName "Demo" -Variant research
+
+# 2. Open it
+cd D:\demo-wiki && claude
+
+# 3. Import a paper + compile + query (inside Claude Code)
+```
+
+Full steps: **[examples/QUICKSTART.md](examples/QUICKSTART.md)**.
+Sample wiki output: **[examples/sample-research-wiki/](examples/sample-research-wiki/)**.
+
+---
+
+## 📖 Scenario Walkthroughs
+
+Three researchers, three complete journeys — from init to submission:
+
+| Scenario | Role | Duration | Focus |
+|---|---|---|---|
+| A | PhD student, new direction | 8 weeks | Deferred scope fence, ideate discovers direction |
+| B | Senior researcher | 4 weeks | Fast validation + writing |
+| C | Long-term maintainer | 6 weeks | Cross-paper reuse, `--Update` for stale commands |
+
+Details: **[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)**.
+
+---
+
+<details>
+<summary>🏗️ Bootstrap a wiki project (details)</summary>
+
+The bootstrap script creates a full project skeleton: `raw/` + `wiki/`, `.claude/{commands,agents}`, OCR scripts, variant templates.
+
 **Windows PowerShell:**
 ```powershell
 .\scripts\bootstrap_new_wiki.ps1 -NewPath D:\my-wiki -Topic my-topic `
     -ProjectName "My Wiki" -Variant research      # or -Variant course
 ```
-> First run of a downloaded `.ps1` blocked? Do once, in this shell:
-> `Unblock-File .\scripts\*.ps1` — or run via
-> `powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap_new_wiki.ps1 ...`
 
 **macOS / Linux:**
 ```bash
@@ -58,93 +144,62 @@ bash scripts/bootstrap_new_wiki.sh --path ~/my-wiki --topic my-topic \
     --name "My Wiki" --variant research            # or --variant course
 ```
 
-This creates `D:\my-wiki` with `.claude/{commands,agents}`, `scripts/`, the
-`raw/` + `wiki/` two-layer skeleton, and `CLAUDE.md` / `research.md` / `README.md`
-rendered for the variant. Then start Claude Code **in that folder** and run
-`/wiki-init`.
+Then start Claude Code **in that folder** and run `/wiki-init`.
 
-## Try it without a GPU (out-of-box example)
-`examples/QUICKSTART.md` is a ~5-minute walkthrough that needs only Claude Code +
-internet — it ingests one arXiv paper via the **no-OCR path** (Claude WebFetches +
-reads the HTML), compiles a note, and queries it. `examples/sample-research-wiki/`
-shows a finished (illustrative) wiki — paper notes ↔ concept ↔ gap, reverse-linked —
-so you can see the output shape without running anything.
+**Update commands/agents in an existing project** (does not touch CLAUDE.md or research.md):
+```powershell
+.\scripts\bootstrap_new_wiki.ps1 -NewPath D:\my-wiki -Update
+```
 
-## Where the slash commands live (project vs global — read this)
-Claude Code resolves slash commands and sub-agents from **two scopes**:
-- **Project** — `<project>/.claude/commands/` + `agents/`: available **only inside that project folder**.
-- **Global (personal)** — `~/.claude/commands/` + `~/.claude/agents/`: available in **every session, any path**.
+**Command scope**: bootstrap installs project-level commands (`/wiki-*`); the plugin installs global commands (`/paper-wiki:wiki-*`). Same commands, different namespaces.
+</details>
 
-`bootstrap_new_wiki.ps1` installs the commands **per project** (into the new
-project's `.claude/`). So `/wiki-*` work **inside a bootstrapped wiki project and
-nowhere else** — by design (each wiki is self-contained, and the `course` variant
-deliberately ships fewer commands).
+<details>
+<summary>🔬 OCR Setup (scanned / figure-heavy PDFs)</summary>
 
-To get the commands **everywhere**, **install the plugin** (see Install above) —
-Claude Code registers them globally as `/paper-wiki:wiki-init`,
-`/paper-wiki:wiki-compile`, … (namespaced), no manual copying. *(Manual alternative,
-not recommended: `cp commands/*.md ~/.claude/commands/` + `cp agents/*.md
-~/.claude/agents/`.)*
+OCR runs on a **GPU (local or remote), never CPU**. Born-digital papers can skip OCR (use the WebFetch path).
 
-Note the two ways differ only by name: a **bootstrapped project** exposes the
-commands **un-namespaced** as `/wiki-*` (from its own `.claude/`) — that's what the
-tutorial/docs use; the **plugin** exposes them as `/paper-wiki:wiki-*`. Same commands.
-
-## Daily use (slash commands, inside a wiki project)
-| command | what it does |
-|---|---|
-| `/wiki-init` | one-time: fill topic + seeds (research) / unpack + inventory (course) |
-| `/wiki-compile` | read new `raw/` material → write paper/lecture notes → synthesize concepts/topics |
-| `/wiki-search-latest <topic>` | (research) find recent papers to import |
-| `/wiki-critique <file>` | adversarial review: holes, overclaims, wrong formulas |
-| `/wiki-ideate <gap>` | (research) discover untried combinations |
-
-> To query the wiki, use `/teach <question>` — it reads wiki notes, cites sources, and teaches interactively. Absent content is explicitly flagged.
-
-> Full command-by-command walkthrough: **[docs/TUTORIAL.md](docs/TUTORIAL.md)**.
-> Three scenario walkthroughs (PhD / senior researcher / long-term maintainer): **[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)**.
-
-## OCR — local or remote GPU (for scanned / figure-heavy PDFs)
-OCR runs on a **GPU (local or remote), never CPU**. Born-digital papers can skip OCR
-(the no-OCR WebFetch path). Full idiot-proof guide: **[docs/OCR-SETUP.md](docs/OCR-SETUP.md)**.
 - **Local GPU:** `conda activate mineru; python scripts/mineru_local_ocr.py`
-- **Remote GPU (your own SSH box):** credentials via env vars, never in the repo:
-```
-$env:MINERU_REMOTE_HOST = "<your gpu host>"
-$env:MINERU_REMOTE_USER = "<ssh user>"
-$env:MINERU_REMOTE_PASS = "<password>"   # keep in local memory, never commit
-python scripts/mineru_remote_ocr.py
-```
-PPTX isn't read by mineru — convert to PDF first (`soffice --headless --convert-to
-pdf`) or use `scripts/extract_pptx.py` (lossy).
+- **Remote GPU:** credentials via env vars, never in the repo:
+  ```
+  $env:MINERU_REMOTE_HOST = "<your gpu host>"
+  $env:MINERU_REMOTE_USER = "<ssh user>"
+  $env:MINERU_REMOTE_PASS = "<password>"
+  python scripts/mineru_remote_ocr.py
+  ```
+- **PPTX**: convert to PDF first (`soffice --headless --convert-to pdf`) or `scripts/extract_pptx.py` (lossy).
 
-## Security
-- **No credentials in this repo.** Host/user are placeholders; the password is read
-  from an env var and should live only in your local Claude Code memory.
-- `templates/memory/remote-ocr-gpu-server.md.tmpl` is a **placeholder** — fill it in
-  locally and never commit the filled copy. `.gitignore` guards common secret paths.
+Full guide: **[docs/OCR-SETUP.md](docs/OCR-SETUP.md)**.
+</details>
 
-## What's inside
+<details>
+<summary>🔒 Security</summary>
+
+- **No credentials in this repo.** Host/user are placeholders; passwords come from env vars.
+- `templates/memory/remote-ocr-gpu-server.md.tmpl` is a template — fill locally, never commit.
+</details>
+
+<details>
+<summary>📁 What's inside</summary>
+
 ```
-.claude-plugin/             plugin.json + marketplace.json (one-command install metadata)
-skills/paper-wiki/SKILL.md  the skill entry (how Claude operates it)
-scripts/                    bootstrap (.ps1 + .sh) + local/remote OCR + pptx + requirements.txt
+.claude-plugin/             plugin metadata (one-command install)
+skills/paper-wiki/SKILL.md  skill entry (how Claude operates it)
+scripts/                    bootstrap (.ps1 + .sh) + OCR + PPTX extraction
 commands/                   slash command definitions
 agents/                     sub-agents (wiki-critic / wiki-searcher / wiki-ideator)
 templates/{research,course} CLAUDE.md / research.md / README.md per variant
-templates/memory/           placeholder memory files
-docs/TUTORIAL.md            command-by-command tutorial (research + course)
-docs/OCR-SETUP.md           local + remote GPU OCR, idiot-proof
-docs/METHODOLOGY.md         the why/how in depth
-docs/GOTCHAS.md             hard-won pitfalls (read before editing scripts)
-docs/llm-wiki.protocol.yaml machine contract (authoritative behavior spec for the LLM)
-examples/QUICKSTART.md      no-GPU out-of-box walkthrough
-examples/sample-research-wiki/  a finished illustrative wiki (see the output shape)
+docs/                       TUTORIAL / WALKTHROUGH / OCR-SETUP / METHODOLOGY / GOTCHAS
+examples/                   QUICKSTART + sample wiki
 ```
+</details>
 
-## License
+---
+
+## 📄 License
+
 MIT
 
-## Credits
-Thanks to the early adopters and internal testers whose real-world feedback shaped
-the methodology and the gotchas.
+## 🙏 Credits
+
+Thanks to the early adopters and internal testers whose real-world feedback shaped the methodology and the gotchas.

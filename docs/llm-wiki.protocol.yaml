@@ -1,0 +1,139 @@
+# llm-wiki.protocol — MACHINE CONTRACT for the wiki-builder skill.
+# Audience: the coding LLM operating this skill. Terse, dense, by design;
+# not optimized for human reading. AUTHORITATIVE for behavior: if prose docs
+# (README/METHODOLOGY) and this file disagree, follow this file.
+# Read together with the project's CLAUDE.md (which fixes the variant + schema).
+
+spec: "llm-wiki/1.0"
+purpose: "Compile source docs (papers OR course material) into a structured, reverse-linked, faithfully-cited knowledge base. LLM Wiki, not RAG."
+
+mental_model:
+  wiki_vs_rag: "proactive compile+write durable knowledge; NOT query-time chunk retrieval"
+  layers:
+    - "raw: read-only, append-only, ground truth"
+    - "wiki: compiled, rewritable, every claim traces to raw"
+
+# MUST-hold. Any violation => the task has failed; stop and report.
+invariants:
+  raw_immutable: "never edit or delete anything under raw/"
+  no_hallucination: "every sentence traces to a source actually read; if a fact is absent write '— 原文未涉及', never fill from memory"
+  cite: "attach a source locator (slide page | OCR line | paper section) to each claim"
+  whole_source: "read the entire source incl. appendix before writing its note"
+  identity_check: "verify downloaded title == expected before compiling; on mismatch stop + report, do not write the note"
+  remote_ocr_only: "PDF->markdown OCR runs on a remote GPU; no local/CPU OCR"
+  reverse_links: "every note connected via [[id]]; lint orphans + dangling + contradictions"
+  secrets_never_in_repo: "credentials via env vars only; the password lives in local memory, never in any repo"
+  no_outward_for_content: "compilation uses only raw/; never web-search for a note's content (research search is a separate, explicit step)"
+  confirm_outward: "irreversible/outward actions (git push, repo create, mass OCR, 30-deck fan-out) require explicit user confirmation first"
+
+layout:
+  "raw/<topic>/": {role: sources, mode: read_only, sub: ["*.pdf", "*-projectpage.md", "mineru/ = OCR markdown"]}
+  "wiki/": {role: compiled, mode: rewritable}
+  "research.md": {role: shared context thread, rule: "read FIRST every new session"}
+  "CLAUDE.md": {role: per-project rules, authoritative_for: "variant + schema + compile rules"}
+  "scripts/": [bootstrap_new_wiki.ps1, mineru_remote_ocr.py, extract_pptx.py]
+  command_scope: {project: "<proj>/.claude/{commands,agents}/", global: "~/.claude/{commands,agents}/", note: "bootstrap installs per-project; copy to global for cross-path use; installing the skill does NOT register slash commands"}
+
+variants:
+  research:
+    main: "wiki/papers/"
+    synthesis: "wiki/concepts/"
+    extra: "wiki/gaps/"
+    note_types: [paper, concept, gap]
+    outward_enabled: [wiki-search-latest, wiki-verify-novelty]
+  course:
+    main: ["wiki/lectures/", "wiki/practice/"]
+    synthesis: "wiki/topics/"
+    spine: "wiki/exam-scope.md (optional; defines in/out scope)"
+    note_types: [lecture, practice, topic]
+    outward_enabled: []
+    priority: "lecture > lab > assignment"
+
+# frontmatter (fm) + ordered sections (sec) per note type
+schemas:
+  paper:    {fm: [title, authors, venue, tags, status, compiled_at, source_path], sec: ["一句话总结","解决什么问题","核心方法","关键实验结果","局限与 Gap","相关工作反链"]}
+  concept:  {fm: ["type=concept", related_papers], sec: ["领域现状","前人忽略的问题","共存的挑战","主要解决方法族(按方法,非按论文)","开放问题 / Gap"]}
+  gap:      {fm: ["type=gap", seeded_from, "novelty_verified=false"], sec: ["问题陈述","为什么前人没解决","可能的切入点","相关文献"]}
+  lecture:  {fm: [title, source, scope, importance, compiled_at], forbid_fm: [authors, venue, arxiv], sec: ["重点速览","核心概念","关键公式(LaTeX)","推导/方法","例子/陷阱","相关练习","出处(slide 页)"]}
+  topic:    {fm: ["type=topic", scope, related_lectures], sec: ["全景","核心方法族","公式/推导汇总","易混点/对比","相关练习"]}
+  practice: {fm: ["type=practice", source, topics], sec: ["题目","解答(无官方解=只整理题目,不编造)","用到的概念"]}
+
+commands:
+  wiki-init:           {once: true, precondition: "fresh bootstrap (TODO banner present)", steps: "detect variant -> AskUserQuestion -> fill CLAUDE.md+research.md (delete TODO banner) -> optional first ingest", never_rerun: true}
+  wiki-compile:        {behavior: "see state_machine.compile", schema_from: "CLAUDE.md"}
+  wiki-ask:            {readonly: true, steps: "read research.md + relevant wiki -> answer ONLY from wiki, cite each -> say 'not in wiki' if absent", edits: "none unless user says 'write to wiki'"}
+  wiki-search-latest:  {variant: research, agent: wiki-searcher, output: "<=10 candidate table", rule: "never import without user confirm"}
+  wiki-critique:       {agent: wiki-critic, output: "severity-tagged findings", edits: "never; user decides"}
+  wiki-verify-novelty: {variant: research, agent: wiki-novelty-verifier, output: "NOVEL | PARTIAL | REFUTED", rule: "never set novelty_verified=true itself; user edits"}
+
+agents:
+  wiki-searcher:        {tools: [WebSearch, WebFetch, Read, Grep, Glob], rule: "verify each arxiv id by fetching abstract; never fabricate ids/papers"}
+  wiki-critic:          {tools: [Read, Grep, Glob, WebSearch], stance: adversarial, severities: ["🔴 blocking", "🟡 weak", "🔵 suggestive"], rule: "cite the lines critiqued; no edits"}
+  wiki-novelty-verifier: {tools: [WebSearch, WebFetch, Read, Grep, Glob], bias: "err toward finding overlap"}
+
+fanout:
+  ingest: "one sub-agent per source, in parallel (one message, multiple Agent calls)"
+  synthesis: "after the ingest barrier"
+  review: "wiki-critic per file/dimension"
+  rule: "if coverage is capped (top-N, sampling, no-retry), log what was dropped"
+
+pipelines:
+  ocr:
+    tool: "scripts/mineru_remote_ocr.py"
+    env: [MINERU_REMOTE_HOST, MINERU_REMOTE_USER, MINERU_REMOTE_PASS, MINERU_NS]
+    namespace: "mineru_<ns>_* (isolates /tmp paths, NOT the GPU)"
+    output: "raw/<topic>/mineru/<name>/auto/<name>.md (+ images/)"
+    nonrecursive: "processes *.pdf directly under input_dir only; stage flat if PDFs are in subdirs"
+    exit_codes: {0: ok, 2: "bad config|input", 3: "truncated PDF (no %%EOF)", 4: "GPU unavailable"}
+    on_gpu_busy: "clean exit 4; no poll, no CPU fallback, no killing others' processes"
+    concurrency: "never run two projects' OCR simultaneously (shared GPU + conda env)"
+  pptx:
+    primary: "on server: soffice --headless --convert-to pdf, then OCR pipeline"
+    fallback: "scripts/extract_pptx.py (text+images, layout lost); set PYTHONIOENCODING=utf-8"
+
+decision_rules:
+  - "arxiv + HTML/LaTeX source available => prefer reading source over OCR (exact math/tables)"
+  - "scanned / figure-heavy PDF => remote OCR"
+  - "PDFs in subfolders => stage flat temp dir before OCR"
+  - ">=3 notes share a theme => create synthesis (concept/topic), organized by method"
+  - "gap recurs across >=2 sources OR user-flagged => write gap (novelty_verified=false)"
+  - "course material out of scope => do NOT compile into wiki/"
+  - "irreversible/outward action => confirm with user first"
+  - "high cost of misreading deliverable shape => AskUserQuestion before mass work"
+
+# machine-checkable pitfalls (full prose in docs/GOTCHAS.md)
+gotchas:
+  win_gbk: "PowerShell Get-Content/Set-Content corrupt UTF-8 Chinese; use Read/Edit/Write or .NET UTF-8"
+  ps1_bom: ".ps1 with non-ASCII needs a UTF-8 BOM under PS5.1, OR keep the body ASCII (this skill keeps it ASCII)"
+  md_no_bom: "command/agent .md MUST be BOM-less, else the slash-command description renders as '---'"
+  pptx_print: "python-pptx math->latex has a print() that crashes on a GBK console; set PYTHONIOENCODING=utf-8"
+  ocr_nonrecursive: "OCR globs direct children only"
+  pkill_self: "narrow pkill to '[m]ineru_<ns>_driver' so it can't SIGKILL its own shell or other projects"
+  ns_not_gpu_iso: "namespace isolates /tmp, not the GPU; serialize OCR across projects"
+  eof_truncation: "arxiv PDFs truncate silently; require a trailing %%EOF"
+  read_pdf_render: "if Read can't rasterize a PDF (no pdftoppm), fall back to PyMuPDF/pdftotext text"
+
+state_machine:
+  compile:
+    s0_load: "read CLAUDE.md + research.md; list the compiled layer"
+    s1_diff: "raw vs compiled -> {new, skip}; (course: apply scope filter); report counts before starting"
+    s2_per_source: "read whole source -> write note per schema -> cite -> add [[links]]"
+    s3_synthesis: "theme>=3 -> concept/topic, by method not by source"
+    s4_gap: "research variant only"
+    s5_lint: "orphans(tag [orphan]) + dangling(list) + contradictions(record in synthesis open-problems) + compiled_at=today"
+    s6_log: "append one progress line to research.md; do not overwrite other sections"
+    s7_report: "compile summary"
+
+lint:
+  orphan: "no inbound [[link]] => tags: [orphan]"
+  dangling: "[[x]] with no x.md => list and fix"
+  contradiction: "conflicting claims across sources => record explicitly in synthesis 'open problems'; never silently pick one"
+
+prohibitions:
+  - "edit raw/ (read-only)"
+  - "copy raw text verbatim into wiki/ (write compiled structure only)"
+  - "write a note for a source you did not read"
+  - "hollow survey-style prose with no concrete source"
+  - "compile out-of-scope material (course)"
+  - "fabricate a lab/assignment solution when no official answer exists"
+  - "put any credential in a repo"

@@ -37,6 +37,13 @@ This creates `D:\my-wiki` with `.claude/{commands,agents}`, `scripts/`, the
 rendered for the variant. Then start Claude Code **in that folder** and run
 `/wiki-init`.
 
+## Try it without a GPU (out-of-box example)
+`examples/QUICKSTART.md` is a ~5-minute walkthrough that needs only Claude Code +
+internet — it ingests one arXiv paper via the **no-OCR path** (Claude WebFetches +
+reads the HTML), compiles a note, and queries it. `examples/sample-research-wiki/`
+shows a finished (illustrative) wiki — paper notes ↔ concept ↔ gap, reverse-linked —
+so you can see the output shape without running anything.
+
 ## Where the slash commands live (project vs global — read this)
 Claude Code resolves slash commands and sub-agents from **two scopes**:
 - **Project** — `<project>/.claude/commands/` + `agents/`: available **only inside that project folder**.
@@ -98,6 +105,9 @@ templates/{research,course} CLAUDE.md / research.md / README.md per variant
 templates/memory/           placeholder memory files
 docs/METHODOLOGY.md         the why/how in depth
 docs/GOTCHAS.md             hard-won pitfalls (read before editing scripts)
+docs/llm-wiki.protocol.yaml machine contract (authoritative behavior spec for the LLM)
+examples/QUICKSTART.md      no-GPU out-of-box walkthrough
+examples/sample-research-wiki/  a finished illustrative wiki (see the output shape)
 ```
 
 ## License

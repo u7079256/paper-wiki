@@ -69,6 +69,10 @@ inventory the materials (course).
 - `docs/METHODOLOGY.md` — the why/how in depth.
 - `docs/GOTCHAS.md` — hard-won pitfalls (Windows UTF-8/GBK, OCR non-recursive glob,
   pkill self-kill, PPTX, %%EOF truncation, …). **Read before editing scripts.**
+- `docs/llm-wiki.protocol.yaml` — **machine contract**; authoritative for behavior.
+  Read it to operate this skill precisely (invariants, schemas, state machine, rules).
+- `examples/QUICKSTART.md` + `examples/sample-research-wiki/` — out-of-box walkthrough
+  (no GPU) and a finished illustrative wiki showing the output shape.
 
 ## Command scope (slash commands vs skill)
 The `/wiki-*` slash commands resolve from `.claude/commands/` — **per project** (the

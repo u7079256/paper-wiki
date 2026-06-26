@@ -74,6 +74,8 @@ inventory the materials (course).
   Read it to operate this skill precisely (invariants, schemas, state machine, rules).
 - `examples/QUICKSTART.md` + `examples/sample-research-wiki/` — out-of-box walkthrough
   (no GPU) and a finished illustrative wiki showing the output shape.
+- `docs/TUTORIAL.md` — command-by-command tutorial (research + course).
+  `docs/OCR-SETUP.md` — local + remote GPU OCR setup.
 
 ## Command scope (slash commands vs skill)
 The `/wiki-*` slash commands resolve from `.claude/commands/` — **per project** (the

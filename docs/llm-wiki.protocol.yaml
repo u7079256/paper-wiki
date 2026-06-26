@@ -64,7 +64,7 @@ commands:
   wiki-ask:            {readonly: true, steps: "read research.md + relevant wiki -> answer ONLY from wiki, cite each -> say 'not in wiki' if absent", edits: "none unless user says 'write to wiki'"}
   wiki-search-latest:  {variant: research, agent: wiki-searcher, output: "<=10 candidate table", rule: "never import without user confirm"}
   wiki-critique:       {agent: wiki-critic, output: "severity-tagged findings", edits: "never; user decides"}
-  wiki-verify-novelty: {variant: research, agent: wiki-novelty-verifier, output: "NOVEL | PARTIAL | REFUTED", rule: "never set novelty_verified=true itself; user edits"}
+  wiki-verify-novelty: {variant: research, agent: wiki-novelty-verifier, output: "confirmed | partial | refuted", rule: "never set novelty_verified=true itself; user edits"}
 
 agents:
   wiki-searcher:        {tools: [WebSearch, WebFetch, Read, Grep, Glob], rule: "verify each arxiv id by fetching abstract; never fabricate ids/papers"}

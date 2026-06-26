@@ -78,6 +78,8 @@ global) as above.
 | `/wiki-critique <file>` | adversarial review: holes, overclaims, wrong formulas |
 | `/wiki-verify-novelty <gap>` | (research) check a claimed gap against prior work |
 
+> Full command-by-command walkthrough (both variants): **[docs/TUTORIAL.md](docs/TUTORIAL.md)**.
+
 ## OCR — local or remote GPU (for scanned / figure-heavy PDFs)
 OCR runs on a **GPU (local or remote), never CPU**. Born-digital papers can skip OCR
 (the no-OCR WebFetch path). Full idiot-proof guide: **[docs/OCR-SETUP.md](docs/OCR-SETUP.md)**.
@@ -105,6 +107,8 @@ scripts/                    bootstrap + remote OCR + pptx fallback
 commands/  agents/          slash commands + sub-agents
 templates/{research,course} CLAUDE.md / research.md / README.md per variant
 templates/memory/           placeholder memory files
+docs/TUTORIAL.md            command-by-command tutorial (research + course)
+docs/OCR-SETUP.md           local + remote GPU OCR, idiot-proof
 docs/METHODOLOGY.md         the why/how in depth
 docs/GOTCHAS.md             hard-won pitfalls (read before editing scripts)
 docs/llm-wiki.protocol.yaml machine contract (authoritative behavior spec for the LLM)

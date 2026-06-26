@@ -62,7 +62,7 @@ clearly labeled) showing the final shape: paper notes ↔ concept ↔ gap, all
 reverse-linked. Open it in Obsidian to see the graph.
 
 ## Going further
-- Real corpora / scanned PDFs → set up remote OCR (`CLAUDE.md` → "远程 OCR 入库管线";
-  credentials via env vars, never in the repo).
+- **Full command-by-command tutorial (both variants):** `../docs/TUTORIAL.md`.
+- Real corpora / scanned PDFs → set up OCR (local or remote GPU): `../docs/OCR-SETUP.md`.
 - Course materials instead of papers → bootstrap with `-Variant course`.
-- The full machine-readable contract Claude follows: `docs/llm-wiki.protocol.yaml`.
+- The full machine-readable contract Claude follows: `../docs/llm-wiki.protocol.yaml`.

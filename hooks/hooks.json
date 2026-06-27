@@ -1,9 +1,10 @@
 {
-  "hooks": [
-    {
-      "event": "SessionStart",
-      "type": "command",
-      "command": "node \"$CLAUDE_PLUGIN_ROOT/hooks/check-update.js\""
-    }
-  ]
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "node \"$CLAUDE_PLUGIN_ROOT/hooks/check-update.js\""
+      }
+    ]
+  }
 }

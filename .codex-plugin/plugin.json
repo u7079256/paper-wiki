@@ -1,0 +1,43 @@
+{
+  "name": "paper-wiki",
+  "version": "0.3.0",
+  "description": "Build and maintain a faithfully cited, reverse-linked LLM Wiki from papers, PDFs, slides, and course material in Codex or Claude Code.",
+  "author": {
+    "name": "yiran wang",
+    "url": "https://github.com/u7079256"
+  },
+  "homepage": "https://github.com/u7079256/paper-wiki",
+  "repository": "https://github.com/u7079256/paper-wiki",
+  "license": "MIT",
+  "keywords": [
+    "llm",
+    "wiki",
+    "knowledge-base",
+    "literature-review",
+    "ocr",
+    "research",
+    "education",
+    "claude-code",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Paper Wiki",
+    "shortDescription": "Compile sources into a cited, editable LLM Wiki.",
+    "longDescription": "Paper Wiki turns research papers or course material into a durable, reverse-linked knowledge base. It supports source ingestion, GPU OCR, full-source compilation, cited synthesis, literature search, adversarial critique, grounded ideation, and read-only teaching across Codex and Claude Code.",
+    "developerName": "yiran wang",
+    "category": "Education & Research",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/u7079256/paper-wiki",
+    "defaultPrompt": [
+      "Initialize a Paper Wiki for this research project.",
+      "Compile the new sources into this Paper Wiki.",
+      "Teach me a concept using only this Paper Wiki."
+    ],
+    "brandColor": "#4F46E5"
+  }
+}

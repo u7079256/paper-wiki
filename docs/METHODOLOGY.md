@@ -5,7 +5,8 @@ repeatable.
 
 ## 1. LLM Wiki ≠ RAG
 RAG retrieves chunks at query time and re-derives an answer each time. An **LLM
-Wiki** does the opposite: Claude **reads each source once, deeply, and writes
+Wiki** does the opposite: the active coding agent (Claude Code or Codex) **reads
+each source once, deeply, and writes
 durable structured knowledge** — summaries, cross-source syntheses, and (for
 research) novelty gaps. The compiled artifacts are the product; they outlive any
 single chat and are what you query later. You pay the reading cost up front, once,
@@ -37,6 +38,11 @@ parallel, each producing its note. Then a second wave synthesizes concepts/topic
 across the notes; then an adversarial pass (`wiki-critic`) hunts for holes. This is
 how a 90-paper research wiki or a 25-deck course wiki gets built in one sitting.
 
+Parallel workers remain under one coordinating runtime and own non-overlapping
+files. This does not permit two independent runtimes to write the same workspace:
+Claude Code and Codex must never update one wiki concurrently. Finish the active
+task and inspect the working tree before handing the workspace to the other runtime.
+
 ## 5. Remote-GPU OCR pipeline
 PDFs → Markdown via MinerU on a remote GPU. Local CPU OCR is banned: it's 10–30×
 slower and PaddleOCR output drifts in quality, which pollutes wiki consistency.
@@ -58,8 +64,8 @@ concepts/topics list `related_*` in frontmatter. This turns the wiki into a grap
 ## 7. The research shape
 `papers/ → concepts/ → gaps/`. The loop:
 ```
-/wiki-search-latest  → confirm imports → remote OCR → /wiki-compile
-   → /wiki-critique (adversarial)  → /wiki-ideate (recombine methods x constraints)
+wiki-search-latest  → confirm imports → remote OCR → wiki-compile
+   → wiki-critique (adversarial)  → wiki-ideate (recombine methods x constraints)
    → refine the gap; user sets novelty_verified: true when confident
 ```
 As you add rounds, the novelty boundary **narrows** — each new neighbor paper
@@ -121,3 +127,13 @@ The fence pairs with a **lifecycle state** (`BUILDING` → `ACTIVE` → `FROZEN`
 Build in rounds (seed → expand → synthesize). After each substantial round, audit
 for consistency rather than trusting the fan-out blindly. The wiki is only as good
 as its weakest unverified claim — so verify, cite, and link relentlessly.
+
+## 11. One canonical project contract, two runtime adapters
+
+`WIKI.md` is the only authority for the project variant, schemas, compilation
+rules, scope, and prohibitions. `CLAUDE.md` and `AGENTS.md` are intentionally thin
+adapters for Claude Code and Codex. Keeping business rules out of the adapters lets
+both runtimes read and update the same durable wiki without semantic drift.
+
+The query/teaching behavior is likewise part of paper-wiki (`wiki-teach`), not an
+assumed external `/teach` installation.

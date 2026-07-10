@@ -1,31 +1,37 @@
 # {{PROJECT_NAME}} 研究 Wiki
 
-> **LLM Wiki**(Claude Code 逐页读论文、编译结构化知识,不是 RAG)。投稿目标:_(待填)_。
+> **LLM Wiki**：Claude Code 与 Codex 都能逐页读论文、编译结构化知识；它不是 RAG。投稿目标：_(待填)_。
 
-## 当前状态({{DATE}})
-刚 bootstrap 建立(research 变体),wiki 内容待填。先在本目录启动 Claude Code 跑 `/wiki-init`。
+## 当前状态（{{DATE}}）
+
+刚由 paper-wiki bootstrap 建立（research 变体），wiki 内容待填。可在本目录用任一客户端执行 `wiki-init`：Claude Code 运行 `/wiki-init`；Codex 运行 `$paper-wiki-project wiki-init` 或直接要求初始化。
 
 ## 怎么用
-在 `{{NEWPATH}}` 启动 Claude Code,CLAUDE.md 与项目 memory 自动加载。
 
-| 命令 | 作用 |
-|---|---|
-| `/wiki-init` | 初始化:填课题 + 种子(仅 bootstrap 后跑一次) |
-| `/wiki-search-latest <方向>` | 联网搜新论文,给候选列表 |
-| `/wiki-compile` | 把 raw/ 新材料编译成 paper / concept / gap |
-| `/wiki-critique <文件>` | 对抗式审稿 |
-| `/wiki-ideate <gap>` | 发现未试过的组合 |
+在 `{{NEWPATH}}` 启动 Claude Code 或 Codex。两端都先读 `WIKI.md` 与 `research.md`；`WIKI.md` 是唯一项目规则权威。
+
+| 动作 | Claude Code | Codex |
+|---|---|---|
+| 初始化 | `/wiki-init` | `$paper-wiki-project wiki-init` |
+| 查询 / 教学 | `/wiki-teach <问题>` | `$paper-wiki-project wiki-teach <问题>` |
+| 搜最新论文 | `/wiki-search-latest <方向>` | `$paper-wiki-project wiki-search-latest <方向>` |
+| 编译 | `/wiki-compile` | `$paper-wiki-project wiki-compile` |
+| 对抗式查错 | `/wiki-critique <文件>` | `$paper-wiki-project wiki-critique <文件>` |
+| 研究构思 | `/wiki-ideate <gap>` | `$paper-wiki-project wiki-ideate <gap>` |
 
 ### OCR 入库
-PDF → Markdown 必须走远程 GPU(配置见 CLAUDE.md「远程 OCR 入库管线」,密码只存本地 memory):
-```
-$env:MINERU_REMOTE_HOST/USER/PASS = ...
+
+PDF → Markdown 必须走 GPU。配置见 `.paper-wiki/docs/OCR-SETUP.md`；密码从当前 shell 或 OS secret store 注入：
+
+```powershell
+$env:MINERU_REMOTE_HOST="<host>"; $env:MINERU_REMOTE_USER="<user>"; $env:MINERU_REMOTE_PASS="<password>"
 python scripts/mineru_remote_ocr.py
 ```
 
 ## 从哪看起
-1. `research.md` —— 研究主线、当前方向、TODO(开新对话先读)
-2. `CLAUDE.md` —— 工作流规则
-3. `wiki/papers/` · `wiki/concepts/` · `wiki/gaps/`
 
-> 用 Obsidian 打开本目录可看反链 graph。
+1. `WIKI.md` —— 唯一项目规则权威、schema 与工作流
+2. `research.md` —— 研究主线、当前方向、进度与 TODO
+3. `wiki/papers/`、`wiki/concepts/`、`wiki/gaps/`
+
+> 用 Obsidian 打开本目录可查看反链 graph。

@@ -1,9 +1,10 @@
 ---
-description: "[Retired] Use /teach to query the wiki."
+description: "[Compatibility alias] Use /wiki-teach to query this wiki."
 ---
 
-This command has been retired.
+Tell the user that `wiki-ask` is a retired compatibility alias and continue by
+running the built-in paper-wiki `wiki-teach` action with the same question.
 
-Tell the user: "wiki-ask has been replaced by /teach. Use /teach to query the wiki — it reads research.md, greps wiki/ for relevant notes, cites sources, and teaches interactively. Absent content is explicitly flagged."
-
-Do not execute any query logic.
+Do not redirect to an external `/teach` skill. Query behavior belongs to
+paper-wiki and is defined by `commands/wiki-teach.md` plus the canonical project
+rules in `WIKI.md`.

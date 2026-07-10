@@ -1,36 +1,45 @@
 # {{PROJECT_NAME}} 课程 Wiki
 
-> **课程知识 / 复习库** —— 把课程的 lecture / lab / assignment 编译成可导航、可复习、可查阅的结构化笔记。**LLM Wiki**,不是 RAG。**不是研究论文库**(没有 novelty gap / 投稿那套)。
+> **课程知识 / 复习库**：Claude Code 与 Codex 都能把 lecture、lab、assignment 编译成可导航、可复习的结构化笔记。它是 LLM Wiki，不是 RAG，也不是研究论文库。
 
-## 当前状态({{DATE}})
-刚 bootstrap 建立(course 变体),wiki 内容待填。先在本目录启动 Claude Code 跑 `/wiki-init`(它会解压材料 + 盘点 + 把文档落到课程框架)。
+## 当前状态（{{DATE}}）
+
+刚由 paper-wiki bootstrap 建立（course 变体），wiki 内容待填。可在本目录用任一客户端执行 `wiki-init`：Claude Code 运行 `/wiki-init`；Codex 运行 `$paper-wiki-project wiki-init` 或直接要求初始化。
 
 ## 怎么用
-在 `{{NEWPATH}}` 启动 Claude Code。
 
-| 命令 | 作用 |
-|---|---|
-| `/wiki-init` | 初始化:解压 + 盘点材料(仅 bootstrap 后跑一次) |
-| `/wiki-compile` | 读 raw/ 材料 → 每份写 lecture/practice 笔记;≥3 篇同主题 → topic 综合 |
-| `/wiki-critique <笔记>` | 查公式 / 结论有无写错 |
+在 `{{NEWPATH}}` 启动 Claude Code 或 Codex。两端都先读 `WIKI.md` 与 `research.md`；`WIKI.md` 是唯一项目规则权威。
 
-### OCR 入库(必须远程 GPU;PPTX 先转 PDF)
-```
-$env:MINERU_REMOTE_HOST/USER/PASS = ...
+| 动作 | Claude Code | Codex |
+|---|---|---|
+| 初始化 | `/wiki-init` | `$paper-wiki-project wiki-init` |
+| 查询 / 教学 | `/wiki-teach <问题>` | `$paper-wiki-project wiki-teach <问题>` |
+| 编译 | `/wiki-compile` | `$paper-wiki-project wiki-compile` |
+| 对抗式查错 | `/wiki-critique <文件>` | `$paper-wiki-project wiki-critique <文件>` |
+
+课程项目不会安装研究专用的 search / ideate 工作流。
+
+### OCR 入库（必须用 GPU；PPTX 先转 PDF）
+
+```powershell
+$env:MINERU_REMOTE_HOST="<host>"; $env:MINERU_REMOTE_USER="<user>"; $env:MINERU_REMOTE_PASS="<password>"
 python scripts/mineru_remote_ocr.py
 ```
-详见 CLAUDE.md「远程 OCR 入库管线」。OCR namespace = `mineru_{{NS}}_*`。
+
+完整配置见 `.paper-wiki/docs/OCR-SETUP.md`。OCR namespace 为 `mineru_{{NS}}_*`。
 
 ## 目录
-- `raw/{{TOPIC}}/` —— 原始材料(只增不改)+ `mineru/`(OCR 产物)
-- `wiki/lectures/` —— 每讲一篇笔记 ← 主层
+
+- `raw/{{TOPIC}}/` —— 原始材料（只增不改）与 `mineru/` OCR 产物
+- `wiki/lectures/` —— 每讲一篇笔记
 - `wiki/topics/` —— 跨讲主题综合
-- `wiki/practice/` —— lab + assignment 题+解
-- `wiki/exam-scope.md` —— (可选)范围 / 重点总索引
+- `wiki/practice/` —— lab 与 assignment 题解
+- `wiki/exam-scope.md` —— 可选的范围 / 重点总索引
 
 ## 从哪看起
-1. `research.md` —— 课程主线、材料清单、TODO(开新对话先读)
-2. `CLAUDE.md` —— 编译规则与工作流
-3. `wiki/lectures/` · `wiki/topics/`
 
-> 用 Obsidian 打开本目录可看反链 graph。
+1. `WIKI.md` —— 唯一项目规则权威、schema 与工作流
+2. `research.md` —— 课程主线、材料清单、进度与 TODO
+3. `wiki/lectures/`、`wiki/topics/`、`wiki/practice/`
+
+> 用 Obsidian 打开本目录可查看反链 graph。

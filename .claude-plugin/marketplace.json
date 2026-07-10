@@ -1,14 +1,26 @@
 {
   "name": "paper-wiki",
+  "description": "Build and maintain faithfully cited, reverse-linked research and course wikis with Claude Code or Codex.",
   "owner": { "name": "u7079256" },
   "plugins": [
     {
       "name": "paper-wiki",
+      "version": "0.3.0",
       "source": "./",
-      "description": "Compile PDFs/slides into a structured, reverse-linked LLM Wiki (not RAG) — research & course variants, local/remote GPU OCR.",
+      "description": "Build and maintain a faithfully cited, reverse-linked LLM Wiki from papers, PDFs, slides, and course material in Claude Code or Codex.",
       "homepage": "https://github.com/u7079256/paper-wiki",
       "license": "MIT",
-      "keywords": ["llm", "wiki", "knowledge-base", "ocr", "research", "claude-code"]
+      "keywords": [
+        "llm",
+        "wiki",
+        "knowledge-base",
+        "literature-review",
+        "ocr",
+        "research",
+        "education",
+        "claude-code",
+        "codex"
+      ]
     }
   ]
 }

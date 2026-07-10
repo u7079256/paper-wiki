@@ -1,10 +1,23 @@
 {
   "name": "paper-wiki",
-  "description": "Compile PDFs/slides into a structured, reverse-linked LLM Wiki (not RAG) — research & course variants, local/remote GPU OCR.",
-  "author": { "name": "yiran wang" },
+  "version": "0.3.0",
+  "description": "Build and maintain a faithfully cited, reverse-linked LLM Wiki from papers, PDFs, slides, and course material in Claude Code or Codex.",
+  "author": {
+    "name": "yiran wang",
+    "url": "https://github.com/u7079256"
+  },
   "homepage": "https://github.com/u7079256/paper-wiki",
   "repository": "https://github.com/u7079256/paper-wiki",
   "license": "MIT",
-  "keywords": ["llm", "wiki", "knowledge-base", "ocr", "research", "claude-code"],
-  "hooks": "./hooks/hooks.json"
+  "keywords": [
+    "llm",
+    "wiki",
+    "knowledge-base",
+    "literature-review",
+    "ocr",
+    "research",
+    "education",
+    "claude-code",
+    "codex"
+  ]
 }

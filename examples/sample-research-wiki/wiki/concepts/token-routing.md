@@ -1,6 +1,6 @@
 ---
 type: concept
-related_papers: [[paper-alpha]], [[paper-beta]]
+related_papers: ["[[paper-alpha]]", "[[paper-beta]]"]
 ---
 
 > SYNTHETIC — illustrative concept synthesizing the two toy papers.

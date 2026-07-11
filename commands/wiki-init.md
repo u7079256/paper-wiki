@@ -1,59 +1,80 @@
 ---
-description: 把刚 bootstrap 出来的 LLM Wiki 项目从模板态过渡到本课题 —— 删模板残留、填本项目内容,可选启动首批入库。Bootstrap 后一次性用。
-argument-hint: (无参数,交互式)
+description: Initialize a freshly bootstrapped LLM Wiki by filling WIKI.md and research.md. Run once.
+argument-hint: (interactive; no arguments)
 ---
 
-用户刚用 `bootstrap_new_wiki.ps1` 从 paper-wiki 把本项目脚手架建好。你的任务:把 CLAUDE.md / research.md 从模板态过渡到本项目,然后可选地启动首批入库。**全程每阶段先给方案、等用户确认再执行**,不要一口气跑完。
+Run the paper-wiki `wiki-init` action. This file is a Claude Code slash-command
+adapter; the initialization contract is shared with Codex.
 
-## 步骤 0:确认是待初始化项目 + 判定变体
+## 1. Verify the project and detect the variant
 
-Read `CLAUDE.md` 顶部 ~15 行。
-- 顶部含 `> 🚧 **TODO` 横幅 → 是新 bootstrap 项目,继续。否则停下问:「这个项目看起来已初始化,真要重跑吗?」
-- 标题是 **`# Research Wiki`** → **research 变体**;**`# Course Wiki`** → **course 变体**。按对应分支走。
+Read the beginning of `WIKI.md`.
 
-## 步骤 1:收集本项目信息(用 AskUserQuestion,不许凭印象编造)
+- Continue only if the bootstrap TODO banner is present.
+- Detect `research` or `course` from `WIKI.md`.
+- If the TODO banner is absent, stop and explain that the project is already
+  initialized. Do not silently re-run initialization.
 
-**research 变体**:问 ① 课题一句话 ② 投稿目标 ③ 核心种子文献(每篇:工作名 / 角色 / arXiv ID 或 URL)④ 数据集(可选)⑤（可选，不确定可留空）Are there areas that look off-topic but are actually relevant? Leave blank if unsure — you can fill this in after your first /wiki-compile round when concept themes emerge.（若填:列 2-5 个,每个附理由）⑥（可选，不确定可留空）Are there areas definitely OUT of scope? Leave blank if unsure — easier to answer once you see what the wiki surfaces.（若填:列 2-5 个,每个附理由;两种类型:(a) 时间淘汰/temporal supersession,如 NeRF 被 3DGS 取代;(b) 类别排除/categorical exclusion,如 motion generation 属于不同输出模态）
-**course 变体**:问 ① 这门课是什么(名称 / 性质)② 目的(复习 / 助教 / 学习)③ 材料在哪(常见:项目根目录有个 `*resources*.zip`,或某文件夹)④ (可选)范围由哪份文档界定(如 `Review lecture`)。
+`WIKI.md` is the **only authoritative project rules file**. `CLAUDE.md` and
+`AGENTS.md` are thin runtime adapters and must remain thin; do not copy project
+rules into either file.
 
-## 步骤 2:把文档落到本项目(先给改动方案,确认后再写)
+## 2. Collect real project information
 
-两变体共通:
-1. **删顶部 TODO 横幅**(整段连同后随空行)。
-2. **改顶部 topic / 课程描述段**为步骤 1 收集到的内容。
-3. 其余**通用规则**(目录约定、多 agent、编译规则、远程 OCR 管线、code repo 规则)**一字不动**。
-4. 把 `research.md` 里所有 `_(填)_` 占位替换为真实内容;在「最近讨论过的问题 / 当前进度」追加一条带今天日期的记录。
+Ask the user for the missing information. Do not infer or invent it.
 
-**research 变体**额外:把 CLAUDE.md 末尾「## 种子方向」与 research.md 的种子表填成本项目种子。把步骤 1 收集到的 ⑤ Adjacent OK 和 ⑥ Exclusions 写进 research.md 的「## Scope fence」;设 `lifecycle_state: BUILDING`。
+For a research wiki, collect:
 
-## 步骤 3:入库(先给完整方案让用户拍板,再执行)
+1. One-sentence research focus.
+2. Submission target.
+3. Seed works, each with its role and arXiv ID or URL.
+4. Dataset(s), if any.
+5. Optional Adjacent OK areas, each with a reason.
+6. Optional Exclusions, each with a reason and whether it is temporal
+   supersession or categorical exclusion.
 
-### research 变体
-问用户是否现在启动「一篇一个 agent」并行入库。若是:对每篇**带 arXiv ID** 的种子并发 spawn general-purpose agent。Each ingest agent must read CLAUDE.md section for the note schema and follow it exactly. Additional init-specific rules:
-1. WebFetch `arxiv.org/abs/<id>` to verify title matches
-2. `curl.exe -L -o raw/<topic>/<id>.pdf arxiv.org/pdf/<id>` + Bash `tail -c 30` to verify `%%EOF`
-3. Read the full PDF including appendix before writing
+For a course wiki, collect:
 
-Identity mismatch or download failure → report honestly, do not write a note.
-- 无 arXiv 的种子(博客/项目页):WebFetch 存 `.md` 入 `raw/<topic>/`,不走 OCR
+1. Course name and type.
+2. Intended use: revision, teaching support, or study.
+3. Location of the material, such as a resources archive or folder.
+4. Optional document that defines exam/course scope.
 
-### course 变体
-1. **解压材料**:把 `*resources*.zip` 解压进 `raw/<topic>/`,保留其原有子目录结构;清掉 macOS 垃圾(`__MACOSX/`、`.DS_Store`、`._*`);原 zip 保留。列清单(PDF / PPTX / ipynb 数)。
-2. **盘点 + 填 research.md 材料清单**;若有范围文档,读它 → 起草 `wiki/exam-scope.md`(可选)。
-3. 给入库方案让用户确认:**PDF** 走远程 GPU OCR;**PPTX** 先远程 `soffice --headless --convert-to pdf` 转 PDF(本地无 soffice 时用 `scripts/extract_pptx.py` 兜底,设 `PYTHONIOENCODING=utf-8`);脚本只抓直接子级 PDF(不递归)→ 先平铺到临时目录。
-4. 确认后 OCR → `/wiki-compile` 编译 lecture/topic/practice。
+## 3. Propose, confirm, then edit
 
-## 步骤 4:远程 OCR 凭据
+Before writing, show the exact initialization plan and wait for confirmation.
+After confirmation:
 
-OCR 配置走环境变量(密码绝不入库):
-```
-$env:MINERU_REMOTE_HOST = "<host>"; $env:MINERU_REMOTE_USER = "<user>"; $env:MINERU_REMOTE_PASS = "<密码,只存本地 memory>"
-python scripts/mineru_remote_ocr.py [input_dir]
-```
-若本项目 memory 已有 `remote-ocr-gpu-server`(从其他项目拷来),提示用户用其中的值。本项目 OCR namespace = `mineru_<ns>_*`,与其他项目隔离;**别和其他项目同时跑 OCR**。
+1. Remove the TODO banner from `WIKI.md`.
+2. Replace only the topic/course placeholders and project-specific seed/material
+   sections in `WIKI.md`; preserve all reusable rules.
+3. Fill every project placeholder in `research.md` and append a dated progress line.
+4. Research: fill seed directions and the scope fence; set
+   `lifecycle_state: BUILDING`.
+5. Course: inventory unpacked materials and optionally draft
+   `wiki/exam-scope.md` from the user-designated scope document.
 
-## 铁律
-- 通用规则一字不改;只动 topic/课程段 + 种子/材料 + `_(填)_`。
-- 步骤 1 信息必须问到,不凭印象编造。
-- 入库严格遵守 CLAUDE.md 编译规则与「禁止」条款。
-- 改完后**不要重跑** `/wiki-init`(TODO 已删、占位已填)。
+Do **not** edit `CLAUDE.md` or `AGENTS.md` during initialization.
+
+## 4. Optional first ingest
+
+Offer a complete ingest plan and wait for approval before downloads, archive
+extraction, mass OCR, or fan-out.
+
+- Research: verify each source identity; use one non-overlapping worker per source.
+  A failed or mismatched source is reported and gets no note.
+- Course: unpack into a temporary staging directory, remove archive junk such as
+  `__MACOSX`, `.DS_Store`, and `._*` there, then append the cleaned source tree to
+  `raw/<topic>/` without overwriting existing files. Keep the original archive.
+- Born-digital sources may use a faithful HTML/LaTeX path. Scanned or figure-heavy
+  material uses the GPU OCR pipeline described by the project docs.
+- Credentials come from environment variables and never enter the repository.
+
+Finish by reminding the user that `wiki-init` is one-time and future work uses the
+other paper-wiki actions.
+
+## Single-writer rule
+
+Only one runtime may write a workspace at a time. Before switching between Claude
+Code and Codex, finish the current task and inspect the working tree. Never launch
+initialization or ingest from both runtimes concurrently.

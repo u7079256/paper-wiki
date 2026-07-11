@@ -3,8 +3,8 @@
 .env.*
 *.secret
 **/MINERU_REMOTE_PASS*
-# Real (filled-in) memory files live in your local Claude Code memory dir, NOT here.
-# Only the *.tmpl placeholders under templates/memory/ belong in this repo.
+# Client-local notes live outside this repo. Memory templates here must never
+# contain passwords or other secrets.
 
 # --- python ----------------------------------------------------------------
 __pycache__/

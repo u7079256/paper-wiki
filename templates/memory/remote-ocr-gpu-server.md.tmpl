@@ -5,8 +5,8 @@ metadata:
   type: reference
 ---
 
-> ⚠️ **这是模板。** 复制到你本地 Claude Code 的**项目 memory 目录**后,填入你自己的服务器与密码。
-> **此文件填好后永不进任何 git 仓库**(密码只存本地 memory)。skill 仓库里只保留这份占位模板。
+> ⚠️ **这是非敏感配置模板。** 只填写服务器说明、用户名与环境信息，不要把密码写进本文件。
+> 密码应由当前 shell 或 OS secret store 注入；本文件即使放在客户端本地配置目录，也不得保存 secret。
 
 这台是**你自己的远程 GPU 服务器**(本 skill 也支持本地 GPU,见 skill `docs/OCR-SETUP.md`)。OCR 在 GPU 上跑,**禁 CPU**。
 
@@ -16,7 +16,7 @@ metadata:
   ```
   $env:MINERU_REMOTE_HOST = "<host>"
   $env:MINERU_REMOTE_USER = "<user>"
-  $env:MINERU_REMOTE_PASS = "<password>"   # 只存本地 memory,绝不写进任何文件 / 仓库
+  $env:MINERU_REMOTE_PASS = "<password>"   # 从当前 shell 或 OS secret store 注入
   python scripts/mineru_remote_ocr.py [input_dir]
   ```
 - **GPU 被占用时**:脚本自带 8 GB 空闲显存门槛预检,不足则干净退出并汇报(退出码 4)。**不轮询、不 CPU 兜底、不 kill 别人进程** —— 由你决定何时重试

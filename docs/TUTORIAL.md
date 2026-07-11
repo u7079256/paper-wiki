@@ -1,185 +1,290 @@
-# Tutorial — operating a wiki, command by command
+# Tutorial — operate one wiki from Claude Code or Codex
 
-The full workflow after bootstrap, with copy-paste examples, for **both variants**.
-New here? Do [`../examples/QUICKSTART.md`](../examples/QUICKSTART.md) first (5 min, no
-GPU). OCR install/use: [`OCR-SETUP.md`](OCR-SETUP.md). The why: [`METHODOLOGY.md`](METHODOLOGY.md).
+This guide covers both `research` and `course` projects. Start with the
+[5-minute quickstart](../examples/QUICKSTART.md) if you are new. OCR setup is in
+[OCR-SETUP.md](OCR-SETUP.md); the design rationale is in
+[METHODOLOGY.md](METHODOLOGY.md).
 
-## The loop (one picture)
+## Runtime contract
+
+Every bootstrapped project carries both entry points:
+
+| Runtime | Start in project root | Project action form |
+|---|---|---|
+| Claude Code | `claude` | `/wiki-*` |
+| Codex | `codex` | `$paper-wiki-project wiki-*` or a natural-language request naming the action |
+
+Both resolve to the same action contracts. `WIKI.md` is the **only authoritative
+project rules file**; `CLAUDE.md` and `AGENTS.md` are thin runtime adapters.
+
+> [!IMPORTANT]
+> A workspace must have one writer. Never run Claude Code and Codex write actions
+> concurrently. Before switching, finish the active task and inspect the working
+> tree for incomplete changes.
+
+The shared loop is:
+
+```text
+research: wiki-init → import → wiki-compile → wiki-critique → wiki-ideate
+                       ↘ wiki-search-latest → wiki-compile → wiki-teach
+course:   wiki-init → OCR → wiki-compile → wiki-critique → wiki-teach
 ```
-research:  /wiki-init → import → /wiki-compile → /wiki-critique → /wiki-ideate
-                      → /wiki-search-latest → /wiki-compile → /teach
-course:    /wiki-init (unpack) → OCR → /wiki-compile → /wiki-critique → /teach
-```
 
-## Conventions in this tutorial
-- **“paste to Claude”** = type it into the Claude Code session **rooted at your wiki
-  project folder** (so `CLAUDE.md` + the `/wiki-*` commands load).
-- Slash commands resolve from the project's `.claude/` (or global) — see README
-  *“Where the slash commands live”* if `/wiki-*` isn't found.
-- Every command obeys the same rules: read `CLAUDE.md` first, cite, never invent,
-  `raw/` is read-only. The commands are thin triggers; `CLAUDE.md` holds the schema.
+## Action mapping
+
+| Action | Claude Code | Codex project skill |
+|---|---|---|
+| Initialize | `/wiki-init` | `$paper-wiki-project wiki-init` |
+| Compile | `/wiki-compile` | `$paper-wiki-project wiki-compile` |
+| Search recent work | `/wiki-search-latest <topic>` | `$paper-wiki-project wiki-search-latest <topic>` |
+| Critique a note | `/wiki-critique <file>` | `$paper-wiki-project wiki-critique <file>` |
+| Ideate from gaps | `/wiki-ideate <gap>` | `$paper-wiki-project wiki-ideate <gap>` |
+| Query or learn | `/wiki-teach <question>` | `$paper-wiki-project wiki-teach <question>` |
+
+`wiki-teach` belongs to paper-wiki. It does not assume an external `/teach` skill
+exists in either runtime.
 
 ---
 
-# Part A — Research wiki (papers → concepts → gaps)
+# Part A — Research wiki
 
-## A0. Bootstrap (once) — recap
+## A0. Bootstrap and start
+
 ```powershell
-.\scripts\bootstrap_new_wiki.ps1 -NewPath D:\my-wiki -Topic mytopic -ProjectName "My Wiki" -Variant research
+.\scripts\bootstrap_new_wiki.ps1 -NewPath D:\my-wiki -Topic mytopic `
+    -ProjectName "My Wiki" -Variant research
 cd D:\my-wiki
-claude            # start Claude Code here
 ```
 
-## A1. `/wiki-init` — turn the template into your project
-- **What:** detects the variant, asks you (via questions) for topic / submission
-  target / seed papers / dataset, then fills `CLAUDE.md` + `research.md` and deletes
-  the 🚧 TODO banner. Optionally kicks off the first ingest.
-- **When:** exactly once, right after bootstrap. Don't re-run it.
-- **Paste to Claude:** `/wiki-init`
-- **You get:** a `CLAUDE.md`/`research.md` describing *your* project; the seed table
-  filled in.
-- **Tip:** it will **ask** — answer with real paper names + arXiv IDs; it won't
-  invent your seeds.
+Start exactly one runtime:
 
-## A2. Import sources — two ways
-**(a) Born-digital paper, no GPU** (fastest; most arXiv):
-```
-Import arXiv:1706.03762 the no-OCR way: WebFetch the abstract to confirm the title,
-WebFetch the HTML full text (ar5iv), save it to raw/mytopic/attention.md, then stop.
-```
-**(b) Scanned PDF / slides → OCR** (needs a GPU):
-- Put the PDF(s) in `raw/mytopic/`, then run local or remote OCR — see
-  [`OCR-SETUP.md`](OCR-SETUP.md). Output lands in `raw/mytopic/mineru/`.
-- **Rule:** `raw/` is append-only; OCR writes there, you never hand-edit it.
-
-## A3. `/wiki-compile` — write paper notes, then synthesize
-- **What:** diffs `raw/` vs the compiled layer, reads each *new* source in full, and
-  writes `wiki/papers/<id>.md` per the schema. Once ≥3 notes share a theme it writes
-  a `wiki/concepts/<theme>.md`; recurring gaps become `wiki/gaps/<id>.md`
-  (`novelty_verified: false`). Ends with a lint pass + a one-line log to `research.md`.
-- **When:** after importing/OCR-ing new sources.
-- **Paste to Claude:** `/wiki-compile`  (or `/wiki-compile mytopic` to filter)
-- **You get:** new notes with frontmatter + `[[backlinks]]`; a compile summary
-  (scanned / new / skipped / concepts / gaps / lint issues).
-- **Tip:** it reports the diff **before** writing — you can confirm scope. It never
-  recompiles an existing note unless you say “recompile”.
-
-## A4. `/wiki-search-latest` — grow the corpus
-- **What:** spawns the `wiki-searcher` sub-agent to search arXiv/web for recent work,
-  dedup against what's already compiled, and return a **ranked candidate table**
-  (≤10, arXiv IDs verified).
-- **When:** seeds compiled but you need related work / baselines (“core ≠ everything”).
-- **Paste to Claude:** `/wiki-search-latest on-policy distillation for robots`
-- **You get:** a table of candidates with relevance + why.
-- **Tip:** **recommendation ≠ import.** It won't download anything until you pick;
-  then it fetches the chosen PDFs to `raw/` and you `/wiki-compile`.
-
-## A5. `/wiki-compile` again — fold in the new papers
-Re-run after importing the chosen candidates. Concepts get updated `related_papers`;
-new gaps may surface. The wiki grows in rounds.
-
-## A6. `/wiki-critique` — adversarial review
-- **What:** spawns `wiki-critic` to attack a wiki file — overclaims, missing
-  baselines, unjustified assumptions, gap claims without backing, internal
-  contradictions — with severities 🔴 blocking / 🟡 weak / 🔵 suggestive.
-- **When:** after writing a gap or an important concept, before you trust it.
-- **Paste to Claude:** `/wiki-critique wiki/gaps/my-core-gap.md`
-- **You get:** a structured critique (it cites the lines it's attacking).
-- **Tip:** the critic **never edits** — it flags, you decide. Ask Claude to apply the
-  🔴 fixes afterward.
-
-## A7. `/wiki-ideate` — discover untried combinations
-- **What:** spawns `wiki-ideator` to recombine wiki-internal methods and constraints,
-  generating 2-6 untried-combination hypotheses, each web-verified as tried / partially
-  tried / untried. Output: constraint map, method landscape, hypothesis table, gap
-  refinement suggestions, coverage holes, and a self-assessment.
-- **When:** before investing research time in a gap.
-- **Paste to Claude:** `/wiki-ideate wiki/gaps/my-core-gap.md`
-- **You get:** a structured ideation report mapping what blocks progress, what tools exist
-  in the wiki, and which method-problem combinations nobody has tried yet.
-- **Tip:** it **won't** set `novelty_verified: true` itself — it proposes; you edit.
-
-## A8. `/teach` — query the wiki / interactive learning
-- **What:** reads `research.md` for context, greps `wiki/` for relevant notes,
-  follows `[[links]]` one hop, then answers. Factual queries get a short cited
-  answer; conceptual questions trigger interactive teaching. Always cites wiki
-  file paths + section names and marks anything absent as “not in wiki”.
-- **When:** any time you want to *use* the knowledge base (incl. new sessions).
-- **Paste to Claude:** `/teach What distinguishes my approach from the nearest baseline?`
-- **Tip:** if it says “not in wiki”, that source isn't compiled yet — import +
-  `/wiki-compile` it (don't let it answer from general knowledge).
-
-## A9. Consistency audit (after big expansions)
-After adding many papers, ask Claude to audit: dangling `[[links]]`, orphan files,
-gap-table claims vs the actual paper notes, terminology drift. Fan out one checker
-per dimension. Fix what they find. (This is how a large wiki stays trustworthy.)
-
----
-
-# Part B — Course wiki (lectures → topics → practice)
-
-Same commands, course schema. `wiki-search-latest` / `wiki-ideate` are **not
-installed** for course projects (a course doesn't expand outward).
-
-## B0. Bootstrap (once)
 ```powershell
-.\scripts\bootstrap_new_wiki.ps1 -NewPath D:\my-course -Topic mycourse -ProjectName "My Course" -Variant course
-cd D:\my-course ; claude
+claude  # then /wiki-init
+# or
+codex   # then $paper-wiki-project wiki-init
 ```
 
-## B1. `/wiki-init` — unpack + inventory
-- **What:** asks what the course is + where the materials are (e.g. a
-  `*resources*.zip` in the project root), **unpacks** them into `raw/mycourse/`
-  (cleaning macOS junk), inventories them into `research.md`, and optionally drafts a
-  `wiki/exam-scope.md` from a review/syllabus doc.
-- **Paste to Claude:** `/wiki-init`
-- **Tip:** it stops for your OK before mass work — confirm the plan.
+Bootstrap creates `WIKI.md`, thin `CLAUDE.md`/`AGENTS.md` adapters, both runtime
+entry points, project-local protocol docs, OCR scripts, and the `raw/` + `wiki/`
+layers.
 
-## B2. OCR the slides (local or remote GPU)
-Lecture PDFs → markdown. **PPTX isn't read by mineru** — convert to PDF first
-(`soffice --headless --convert-to pdf`) or use `scripts/extract_pptx.py`. Full guide:
-[`OCR-SETUP.md`](OCR-SETUP.md). Reminder: OCR globs `*.pdf` **directly under** the
-input dir — stage subfolder PDFs flat first.
+## A1. `wiki-init` — fill project identity once
 
-## B3. `/wiki-compile` — lecture / practice notes + topics
-- **What:** reads each in-scope source and writes `wiki/lectures/<id>.md` (and
-  `wiki/practice/<id>.md` for labs/assignments); ≥3 in a theme → `wiki/topics/<t>.md`.
-  **Out-of-scope material is not compiled** (per `exam-scope.md`). Lab with no official
-  answer → only the question is transcribed, never an invented solution.
-- **Paste to Claude:** `/wiki-compile`
-- **Tip:** lecture notes carry slide-page citations; formulas are LaTeX. If you have
-  lecture transcripts/ASR, you can add an “in-class notes” section for intuition —
-  but **never extract formulas from ASR** (use the slides).
+The action reads the TODO banner and variant from `WIKI.md`, asks for your research
+focus, target, real seed papers, datasets, and optional scope fence, then proposes
+edits. After approval it fills **`WIKI.md` and `research.md`**. It does not put
+business rules into `CLAUDE.md` or `AGENTS.md`.
 
-## B4. `/wiki-critique` — catch wrong formulas / claims
-```
-/wiki-critique wiki/lectures/diffusion-basics.md
-```
-Checks the note against the source for misread formulas or overstated claims.
+Run this exactly once:
 
-## B5. `/teach` — revise / look things up
+```text
+# Claude Code
+/wiki-init
+
+# Codex
+$paper-wiki-project wiki-init
 ```
-/teach Walk me through the ELBO derivation from the diffusion lecture, with the slide it's on.
+
+## A2. Import sources
+
+For a born-digital paper, ask the active runtime to verify the abstract identity,
+fetch faithful HTML/LaTeX full text, and save it under `raw/<topic>/`. For scanned
+or figure-heavy PDFs, put the PDF under `raw/<topic>/` and use the local or remote
+GPU OCR path in [OCR-SETUP.md](OCR-SETUP.md).
+
+`raw/` is append-only ground truth. Import may add a source; later actions never
+hand-edit or delete it.
+
+## A3. `wiki-compile` — write notes and synthesis
+
+```text
+# Claude Code
+/wiki-compile
+
+# Codex
+$paper-wiki-project wiki-compile
 ```
-Answers from the compiled notes with citations; conceptual questions trigger
-interactive teaching with follow-up questions.
+
+The action reads `WIKI.md`, diffs `raw/` against the compiled layer, reports what
+is new, then reads every eligible new source in full. OCR-derived sources are
+eligible only when `_paper-wiki-ocr-complete.json` names a safe sibling
+`.committed.json` batch marker that is a regular non-link/non-reparse JSON record
+with schema `paper-wiki/ocr-batch/v2` and resolution `committed`; the completion
+manifest must use `paper-wiki/ocr-completion/v2`. Its batch id and exactly one
+source record must match the manifest's source name, PDF provenance, and complete
+`paper-wiki/ocr-content/v1` fingerprint. Before reading body text, the action copies
+every declared regular single-link file through an identity-bound no-follow handle
+into an owner-only snapshot, verifies the exact file set, each size/SHA-256, and
+the canonical `tree_sha256`, then reads only that snapshot. Legacy v1,
+pending, aborted, invalid, linked, changed, mismatched, or markerless OCR output is
+reported as blocked. The action writes `wiki/papers/` notes using
+the canonical schema, cites source locators, and adds `[[links]]`. Once at least
+three notes share a theme, it synthesizes a method-organized concept. Recurring
+gaps are written with `novelty_verified: false`.
+
+Workers may handle independent sources in parallel under one coordinator, but a
+second Claude/Codex runtime must not write the workspace.
+
+## A4. `wiki-search-latest` — expand deliberately
+
+```text
+# Claude Code
+/wiki-search-latest on-policy distillation for robots
+
+# Codex
+$paper-wiki-project wiki-search-latest on-policy distillation for robots
+```
+
+The search action verifies identities and URLs, deduplicates against existing
+papers, applies the scope fence, and returns at most ten candidates. It never
+imports a recommendation until you select it. After approved import, run
+`wiki-compile` again.
+
+## A5. `wiki-critique` — attack a claim before trusting it
+
+```text
+# Claude Code
+/wiki-critique wiki/gaps/my-core-gap.md
+
+# Codex
+$paper-wiki-project wiki-critique wiki/gaps/my-core-gap.md
+```
+
+The critic checks the note and underlying evidence for unsupported claims,
+omissions, contradictions, and formula errors. It returns severity-tagged findings
+with exact file/section evidence. Critique is read-only; repairs are a separate,
+user-approved action.
+
+## A6. `wiki-ideate` — explore grounded combinations
+
+```text
+# Claude Code
+/wiki-ideate wiki/gaps/my-core-gap.md
+
+# Codex
+$paper-wiki-project wiki-ideate wiki/gaps/my-core-gap.md
+```
+
+The ideator maps constraints and method families, proposes combinations, checks
+coverage holes, and separates wiki evidence, outward verification, and hypotheses.
+It never sets `novelty_verified: true`; that remains the researcher's decision.
+
+## A7. `wiki-teach` — use the compiled knowledge
+
+```text
+# Claude Code
+/wiki-teach What distinguishes my approach from the nearest baseline?
+
+# Codex
+$paper-wiki-project wiki-teach What distinguishes my approach from the nearest baseline?
+```
+
+The built-in query action reads `research.md`, finds relevant wiki notes, follows
+useful links, and cites wiki paths, sections, and source locators. If coverage is
+missing, it says `not in wiki` and suggests what to ingest or compile; it does not
+answer from general model knowledge.
+
+## A8. Lifecycle and audits
+
+- `BUILDING`: actively expand.
+- `ACTIVE`: use the wiki and expand only on demand.
+- `FROZEN`: no additions until the user reopens it.
+
+After a large import, ask the active runtime to audit dangling links, orphan notes,
+gap claims against paper notes, contradictions, and terminology drift. Delegate
+independent audit dimensions when useful, then integrate under one coordinator.
 
 ---
 
-# Cross-cutting rules (every command, both variants)
-- **Faithful + cited.** Every claim traces to a read source; absent → “— 原文未涉及”,
-  never from memory.
-- **`raw/` read-only**, `wiki/` rewritable.
-- **Reverse links** everywhere (`[[id]]`); lint orphans / dangling / contradictions.
-- **OCR on a GPU (local or remote), never CPU**; credentials via env, never in the repo.
-- The authoritative machine spec is [`llm-wiki.protocol.yaml`](llm-wiki.protocol.yaml).
+# Part B — Course wiki
 
-# FAQ / troubleshooting
-| symptom | fix |
+## B0. Bootstrap and start
+
+```powershell
+.\scripts\bootstrap_new_wiki.ps1 -NewPath D:\my-course -Topic mycourse `
+    -ProjectName "My Course" -Variant course
+cd D:\my-course
+claude  # or codex, but not both concurrently
+```
+
+Run `/wiki-init` in Claude Code or `$paper-wiki-project wiki-init` in Codex. The
+action asks for the course, intended use, material location, and optional scope
+document; after approval it inventories the material in `research.md` and may
+draft `wiki/exam-scope.md`.
+
+## B1. OCR lectures
+
+PDF slides use GPU OCR. Convert PPTX to PDF with
+`soffice --headless --convert-to pdf` first, or use
+`scripts/extract_pptx.py` as a lossy fallback. OCR scans direct child PDFs only, so
+stage nested decks in a flat temporary input. See [OCR-SETUP.md](OCR-SETUP.md).
+
+## B2. Compile course notes
+
+Use `/wiki-compile` or `$paper-wiki-project wiki-compile`. The course schema in
+`WIKI.md` produces `wiki/lectures/`, `wiki/practice/`, and `wiki/topics/`. Material
+outside `wiki/exam-scope.md` is not compiled. If an assignment has no official
+answer, record only the question; never invent a solution.
+
+## B3. Critique and learn
+
+```text
+# Claude Code
+/wiki-critique wiki/lectures/diffusion-basics.md
+/wiki-teach Walk through the ELBO derivation and cite the slide.
+
+# Codex
+$paper-wiki-project wiki-critique wiki/lectures/diffusion-basics.md
+$paper-wiki-project wiki-teach Walk through the ELBO derivation and cite the slide.
+```
+
+`wiki-search-latest` and `wiki-ideate` are research-only and are not installed in
+course projects.
+
+---
+
+# Updating a bootstrapped project
+
+Windows:
+
+```powershell
+.\scripts\bootstrap_new_wiki.ps1 -NewPath D:\my-wiki -Update
+```
+
+macOS/Linux:
+
+```bash
+bash scripts/bootstrap_new_wiki.sh --path ~/my-wiki --update
+```
+
+Update mode refreshes managed Claude commands/agents, the Codex project skill,
+thin adapters, manifest metadata, and vendored protocol docs. It preserves
+`WIKI.md`, `research.md`, the project `README.md`, `raw/`, and `wiki/`. A legacy
+Claude-only project is migrated by copying its full `CLAUDE.md` to `WIKI.md` once,
+then replacing `CLAUDE.md` with a thin adapter. Conflicting variant evidence stops
+the update for user review.
+
+# Cross-cutting rules
+
+- Read `WIKI.md` first; it is the only authority for project behavior.
+- Every claim traces to a source read in full; absent means `— 原文未涉及` or
+  `not in wiki`.
+- `raw/` is read-only after import; `wiki/` is the compiled, rewritable layer.
+- Use reverse links and lint orphans, dangling links, and contradictions.
+- OCR runs on GPU, never CPU; credentials stay outside the repository.
+- Keep exactly one runtime writer per workspace and verify state before handoff.
+
+The machine-readable contract is
+[llm-wiki.protocol.yaml](llm-wiki.protocol.yaml), version `llm-wiki/1.1`.
+
+# Troubleshooting
+
+| Symptom | Fix |
 |---|---|
-| `/wiki-*` not found in a folder | it's project-scoped — you're not in a wiki project, or install commands globally (README → “Where the slash commands live”) |
-| `/teach` says “not in wiki” | that source isn't compiled — import + `/wiki-compile` it |
-| OCR errors / exit 2/3/4 | see [`OCR-SETUP.md`](OCR-SETUP.md) §7 |
-| two projects' OCR clash | shared GPU — run them one at a time |
-| `/wiki-search-latest` / `/wiki-ideate` missing | you're in a **course** project; they're research-only by design |
-| compile rewrote nothing | it skips already-compiled notes; say “recompile <id>” to force |
+| Claude `/wiki-*` is missing | Start Claude Code in the bootstrapped project or install the global plugin |
+| Codex cannot find `$paper-wiki-project` | Start Codex in the project root and confirm `.agents/skills/paper-wiki-project/SKILL.md` exists |
+| `wiki-teach` says `not in wiki` | Import and compile the missing source; do not ask it to guess |
+| OCR exits 2, 3, 4, or 5 | See [OCR-SETUP.md](OCR-SETUP.md) §7; exit 5 means processing, SSH/host-key, transfer, timeout, validation, staging, or recoverable publication failed. Any moved source without its committed batch marker is incomplete and must not be compiled |
+| Two OCR jobs collide | Stop one; the projects share a GPU even when temp namespaces differ |
+| Search/ideate is missing | It is intentionally unavailable in course projects |
+| Runtime switch shows unexpected changes | Stop, inspect the working tree, and resolve the prior task before writing |

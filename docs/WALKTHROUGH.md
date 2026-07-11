@@ -4,6 +4,11 @@
 > 一个 PhD 生从零起步、一个资深研究者快速验证想法、一个长期维护者跨论文复用 wiki。
 > 每个场景展示**你会做什么、看到什么、得到什么**。
 
+以下故事用 Claude Code 的 `/wiki-*` 写法叙述；在 Codex 中，对应写成
+`$paper-wiki-project wiki-*`，也可以用自然语言点名 action。两端都以
+`WIKI.md` 为唯一项目规则。每次只让一个 runtime 写 workspace，切换前先等
+当前任务结束并检查工作树。
+
 ---
 
 ## 场景 A：PhD 生 — 8 周，从"导师的一句话"到投稿
@@ -21,7 +26,7 @@
 .\scripts\bootstrap_new_wiki.ps1 -NewPath D:\avatar-wiki -Topic avatar-3dgs `
     -ProjectName "3DGS Avatar Survey" -Variant research
 cd D:\avatar-wiki
-claude
+claude  # 或 codex；不要同时启动两个写入任务
 ```
 
 **初始化（`/wiki-init`）：**
@@ -92,9 +97,9 @@ A编辑 `research.md`：
 
 wiki 有 12 篇论文、5 个概念、2 个 gap。A开始觉得有些方向可以做。
 
-**用 `/teach` 深入理解：**
+**用 `/wiki-teach` 深入理解：**
 ```
-/teach 帮我对比一下 GaussianAvatars 和 SplattingAvatar 在 deformation 方法上的区别
+/wiki-teach 帮我对比一下 GaussianAvatars 和 SplattingAvatar 在 deformation 方法上的区别
 ```
 Teach 输出一张对比表格：
 
@@ -108,7 +113,7 @@ Teach 输出一张对比表格：
 （每个单元格引用对应 wiki 笔记的具体章节）
 
 ```
-/teach 为什么 UV-based 方法会有接缝问题？推导一下
+/wiki-teach 为什么 UV-based 方法会有接缝问题？推导一下
 ```
 Teach 展开交互式教学：从 UV 映射的数学定义讲起，解释 chart boundary 不连续性，
 引用 `wiki/papers/splattingavatar.md § 局限` 和 `wiki/concepts/uv-deformation.md § 已知问题`。
@@ -177,7 +182,7 @@ lifecycle_state: FROZEN
 Wiki 冻结。
 
 ```
-/teach 帮我按概念分组整理 related work，列出每篇论文和本工作的关系
+/wiki-teach 帮我按概念分组整理 related work，列出每篇论文和本工作的关系
 ```
 
 Teach 输出分组的论文列表，每篇一句话定位。A用这个作为 related work 的骨架。
@@ -193,12 +198,12 @@ Reviewer 说："你应该讨论 HeadGAP (ECCV 2024) 和 GART (NeurIPS 2024)。"
 lifecycle_state: BUILDING
 ```
 
-导入这 2 篇论文 → `/wiki-compile` → `/teach` 理解新论文 → 更新 related work → 重新冻结。
+导入这 2 篇论文 → `/wiki-compile` → `/wiki-teach` 理解新论文 → 更新 related work → 重新冻结。
 
 > **如果命令过期了**（比如半年前 bootstrap 的项目还用旧版 wiki-verify-novelty）：
 > ```powershell
 > .\scripts\bootstrap_new_wiki.ps1 -NewPath D:\avatar-wiki -Update
-> # 只更新 commands/ 和 agents/，不碰 CLAUDE.md、research.md 和 wiki 内容
+> # 刷新双端受管适配层；不覆盖 WIKI.md、research.md、raw/ 或 wiki/
 > ```
 
 ---
@@ -256,7 +261,7 @@ lifecycle_state: FROZEN
 ```
 
 ```
-/teach 对比 RelightableGaussian 和 GS-LRM 在 material estimation 上的方法，给我一张表
+/wiki-teach 对比 RelightableGaussian 和 GS-LRM 在 material estimation 上的方法，给我一张表
 ```
 
 | | RelightableGaussian | GS-LRM |
@@ -267,7 +272,7 @@ lifecycle_state: FROZEN
 | 本工作关系 | 最近的 baseline | material 参数化可借鉴 |
 
 ```
-/teach 帮我按概念分组整理 related work
+/wiki-teach 帮我按概念分组整理 related work
 ```
 
 → 直接产出 related work 骨架，每篇论文一句话定位。
@@ -350,7 +355,7 @@ A用 gap-focused 模式 `/wiki-ideate wiki/gaps/hand-avatar-contact.md`，
 ### 第 4 周：Teach 深入
 
 ```
-/teach 解释一下 physics-based contact modeling 和 data-driven 方法各自的数学基础，
+/wiki-teach 解释一下 physics-based contact modeling 和 data-driven 方法各自的数学基础，
 给我一张对比表，重点是哪些假设会影响 avatar 场景的适用性
 ```
 
@@ -360,8 +365,8 @@ Teach 输出详细对比，引用 3 篇论文的具体方法章节。
 
 ### 第 5 周：发现命令过期了
 
-项目是 6 个月前 bootstrap 的，`.claude/commands/` 里还有旧的 `wiki-verify-novelty.md`，
-没有 `wiki-ideate.md`，也没有 `wiki-ask.md` 的 redirect。
+项目是 6 个月前 bootstrap 的，`.claude/commands/` 里还有旧的
+`wiki-verify-novelty.md`，也没有 Codex 项目 skill 和 `wiki-teach.md`。
 
 ```powershell
 .\scripts\bootstrap_new_wiki.ps1 -NewPath D:\avatar-wiki -Update
@@ -370,7 +375,7 @@ Teach 输出详细对比，引用 3 篇论文的具体方法章节。
 Updated 6 commands and 3 agents from paper-wiki.
 ```
 
-命令更新完成，CLAUDE.md 和 research.md 不受影响。
+双端适配层更新完成，`WIKI.md`、`research.md` 和 wiki 内容不受影响。
 
 ---
 
@@ -378,7 +383,7 @@ Updated 6 commands and 3 agents from paper-wiki.
 
 ```
 lifecycle_state: FROZEN
-/teach 帮我整理这次新增的 interaction 方向的 related work
+/wiki-teach 帮我整理这次新增的 interaction 方向的 related work
 ```
 
 第二篇论文的 related work 骨架 15 分钟搞定——因为所有论文都已经编译、

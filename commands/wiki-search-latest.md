@@ -1,35 +1,28 @@
 ---
-description: Search arXiv and web for recent papers on a topic. Returns a candidate list to import into raw/.
+description: Search arXiv and the web for recent research papers, then offer a verified candidate list for import.
 argument-hint: <topic / keywords>
 ---
 
-Spawn the `wiki-searcher` sub-agent via the Agent tool.
+Run the paper-wiki `wiki-search-latest` action. This file adapts the action to a
+Claude Code slash command.
 
-Arguments: `$ARGUMENTS`
+1. Read `WIKI.md` first, then `research.md` and the existing paper IDs under
+   `wiki/papers/`.
+2. Stop for a course wiki; outward paper search is research-only.
+3. Respect `lifecycle_state`: stop when `FROZEN`; when `ACTIVE`, note that this
+   explicit request is an on-demand expansion.
+4. Resolve the search topic from the argument or current research focus. Ask if the
+   intent is genuinely ambiguous.
+5. Run the verified paper-search capability using the current scope fence and a
+   24-month default window unless the user supplied another range.
+6. Return at most ten candidates with verified identity/URL, relevance, date, and
+   a `[FENCE]` marker for excluded areas. Deduplicate against compiled papers.
+7. Ask the user which candidates to import. A recommendation is never permission
+   to download or write into `raw/`.
+8. After approval, fetch only the selected sources, verify identity again, and
+   explain whether each is ready for the `wiki-compile` action or first needs GPU
+   OCR.
 
-## Your task
-
-### Step 0 — variant + lifecycle check
-1. Read CLAUDE.md to detect variant. If course: stop and say "Paper search is research-only. Course wikis don't expand outward."
-2. Read research.md lifecycle_state. If FROZEN: stop and say "The wiki is frozen. Set lifecycle_state to ACTIVE in research.md to re-enable search." If ACTIVE: warn "The wiki is in ACTIVE state (expand on demand only). Proceeding with your explicit request."
-
-1. If `$ARGUMENTS` is empty → read `research.md` and ask user which direction to search, or default to the current active topic
-2. Invoke `wiki-searcher` with:
-   - Topic / keywords
-   - Current research thread summary (from `research.md`)
-   - Existing paper IDs in `wiki/papers/` (for dedup)
-   - Time filter: last 24 months unless user specified
-
-3. When agent returns the candidate table:
-   - Show it to the user verbatim
-   - Ask: "Which to import? I can fetch the PDFs to `raw/<topic>/` and run `/wiki-compile` after."
-   - On user confirmation, use WebFetch or Bash + `wget/curl` to download PDFs
-   - If the agent returns an ambiguity error about the topic, relay it to the user and ask for clarification before re-invoking.
-
-4. After downloading PDFs, guide the user:
-   - For born-digital arXiv papers: re-fetch as HTML via ar5iv (WebFetch the HTML full text and save as `.md` to `raw/<topic>/`) — compile sees `.md` files directly.
-   - For scanned/figure-heavy PDFs: run OCR first (see `docs/OCR-SETUP.md`) so output lands in `raw/<topic>/mineru/`.
-   - Then run `/wiki-compile`.
-
-## Hard rule
-- Never import a paper the searcher just recommended without user confirmation. Recommendation ≠ permission to download.
+`WIKI.md` is the only authoritative project rules file. Do not derive behavior
+from `CLAUDE.md` or `AGENTS.md`. Do not let Claude Code and Codex write this
+workspace concurrently.

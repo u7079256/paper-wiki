@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>paper-wiki — LLM Wiki for Research & Courses</title>
-<meta name="description" content="A Claude Code plugin that compiles PDFs and slides into a structured, reverse-linked knowledge base.">
+<meta name="description" content="A Claude Code and Codex plugin that compiles PDFs and slides into a structured, reverse-linked knowledge base.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -191,11 +191,11 @@ body {
 
 <section class="hero">
   <div class="hero-content">
-    <div class="hero-badge">Claude Code Plugin · MIT License</div>
+    <div class="hero-badge">Claude Code + Codex · MIT License</div>
     <h1 data-lang="zh">把论文编译成<span class="gradient">知识图谱</span></h1>
-    <p class="tagline" data-lang="zh">丢给 Claude 一堆论文或课程材料，逐页读完后编译成结构化、双向链接的知识库——不是 RAG，是 LLM Wiki。</p>
+    <p class="tagline" data-lang="zh">让 Claude Code 或 Codex 逐页读完论文与课程材料，编译成结构化、双向链接的知识库——不是 RAG，是 LLM Wiki。</p>
     <h1 data-lang="en">Compile Papers into a <span class="gradient">Knowledge Graph</span></h1>
-    <p class="tagline" data-lang="en">A Claude Code plugin that reads every page of your PDFs and slides, compiles structured notes with citations, and synthesizes cross-source concepts — not RAG, an LLM Wiki.</p>
+    <p class="tagline" data-lang="en">A Claude Code and Codex plugin that reads every page of your PDFs and slides, compiles cited notes, and synthesizes cross-source concepts — not RAG, an LLM Wiki.</p>
     <div class="hero-install">
       <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       <code><span class="prompt">&gt; </span>/plugin marketplace add u7079256/paper-wiki</code>
@@ -221,11 +221,11 @@ body {
 </section>
 
 <div class="stats">
-  <div class="stat" data-lang="zh"><div class="stat-value">5</div><div class="stat-label">slash 命令</div></div>
+  <div class="stat" data-lang="zh"><div class="stat-value">6</div><div class="stat-label">核心 Action</div></div>
   <div class="stat" data-lang="zh"><div class="stat-value">3</div><div class="stat-label">Sub-agent</div></div>
   <div class="stat" data-lang="zh"><div class="stat-value">2</div><div class="stat-label">变体（科研 / 课程）</div></div>
   <div class="stat" data-lang="zh"><div class="stat-value">GPU</div><div class="stat-label">OCR（本地 / 远程）</div></div>
-  <div class="stat" data-lang="en"><div class="stat-value">5</div><div class="stat-label">Slash Commands</div></div>
+  <div class="stat" data-lang="en"><div class="stat-value">6</div><div class="stat-label">Core Actions</div></div>
   <div class="stat" data-lang="en"><div class="stat-value">3</div><div class="stat-label">Sub-agents</div></div>
   <div class="stat" data-lang="en"><div class="stat-value">2</div><div class="stat-label">Variants (research / course)</div></div>
   <div class="stat" data-lang="en"><div class="stat-value">GPU</div><div class="stat-label">OCR (local / remote)</div></div>
@@ -281,7 +281,7 @@ body {
                               ↓                              ↓
                         /wiki-search-latest ←── coverage gaps ┘
                               ↓
-                        /wiki-compile → /teach (deep understanding)</code></pre>
+                        /wiki-compile → /wiki-teach (deep understanding)</code></pre>
     </div>
   </section>
 
@@ -309,43 +309,47 @@ body {
   </section>
 
   <section class="section" id="install">
-    <div data-lang="zh"><p class="section-label">安装</p><h2>两条命令，装完即用</h2><p class="desc">Claude Code 自动拉取并管理 plugin，不用手动往 <code>~/.claude/</code> 里复制任何东西。</p></div>
-    <div data-lang="en"><p class="section-label">Installation</p><h2>One command — it's a plugin</h2><p class="desc">Claude Code fetches and manages the plugin. No manual copying into <code>~/.claude/</code>, no permission prompts.</p></div>
+    <div data-lang="zh"><p class="section-label">安装</p><h2>Claude Code 与 Codex 双端可用</h2><p class="desc">两端都能从本仓库 marketplace 安装；bootstrap 项目自带两套入口。</p></div>
+    <div data-lang="en"><p class="section-label">Installation</p><h2>Works in Claude Code and Codex</h2><p class="desc">Both runtimes install from this repository marketplace; bootstrapped projects carry both entry points.</p></div>
     <div class="code-block"><div class="code-block-header"><span class="code-block-label">Claude Code</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code><span class="prompt">&gt; </span>/plugin marketplace add u7079256/paper-wiki
 <span class="prompt">&gt; </span>/plugin install paper-wiki@paper-wiki</code></pre></div>
-    <div data-lang="zh"><p class="desc">后续更新：<code>/plugin marketplace update paper-wiki</code>。</p><div class="tip"><strong>遇到 SSH host-key 报错？</strong> plugin 安装走的是 SSH 克隆。如果报 <em>No ED25519 host key is known for github.com</em>，执行一次：<br><code>ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts</code>，然后重试。</div><p class="desc">不想装 plugin 也行——直接 <code>git clone</code> 本仓库，用 bootstrap 脚本创建项目。</p></div>
-    <div data-lang="en"><p class="desc">Update later with <code>/plugin marketplace update paper-wiki</code>.</p><div class="tip"><strong>SSH host-key error?</strong> The plugin system clones via SSH. If you see <em>No ED25519 host key is known for github.com</em>, run once:<br><code>ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts</code></div><p class="desc">Don't want a plugin? <code>git clone</code> this repo and run the bootstrap below — bootstrapped projects are self-contained.</p></div>
+    <div class="code-block"><div class="code-block-header"><span class="code-block-label">Codex</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code>codex plugin marketplace add u7079256/paper-wiki
+codex plugin add paper-wiki@paper-wiki</code></pre></div>
+    <div class="tip" data-lang="zh"><strong>同一 workspace 只能有一个写入者。</strong>切换 Claude Code / Codex 前先结束当前任务并检查工作树。项目规则只认 <code>WIKI.md</code>。</div>
+    <div class="tip" data-lang="en"><strong>One writer per workspace.</strong> Finish the active task and inspect the working tree before switching between Claude Code and Codex. <code>WIKI.md</code> is canonical.</div>
+    <div data-lang="zh"><p class="desc">后续更新：Claude Code 使用 <code>/plugin marketplace update paper-wiki</code>；Codex 使用 <code>codex plugin marketplace upgrade paper-wiki</code>。若 Git 主机校验失败，请先对照 GitHub 官方公布的 SSH fingerprint，切勿把未经核验的 <code>ssh-keyscan</code> 输出直接写进 <code>known_hosts</code>。</p><p class="desc">不想装 plugin 也行——直接 <code>git clone</code> 本仓库，用 bootstrap 脚本创建项目。</p></div>
+    <div data-lang="en"><p class="desc">Update with <code>/plugin marketplace update paper-wiki</code> in Claude Code or <code>codex plugin marketplace upgrade paper-wiki</code> in Codex. If Git host verification fails, compare the key with GitHub's officially published SSH fingerprints; do not persist unverified <code>ssh-keyscan</code> output.</p><p class="desc">Don't want a plugin? <code>git clone</code> this repo and run the bootstrap below — bootstrapped projects are self-contained.</p></div>
     <div data-lang="zh"><h3 style="margin-top:32px;font-size:18px;font-weight:700;">创建 wiki 项目</h3></div>
     <div data-lang="en"><h3 style="margin-top:32px;font-size:18px;font-weight:700;">Bootstrap a wiki project</h3></div>
     <div class="code-block"><div class="code-block-header"><span class="code-block-label">Windows PowerShell</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code><span class="prompt">PS&gt; </span>.\scripts\bootstrap_new_wiki.ps1 <span class="flag">-NewPath</span> <span class="string">D:\my-wiki</span> <span class="flag">-Topic</span> <span class="string">my-topic</span> `
      <span class="flag">-ProjectName</span> <span class="string">"My Wiki"</span> <span class="flag">-Variant</span> <span class="string">research</span></code></pre></div>
     <div class="code-block"><div class="code-block-header"><span class="code-block-label">macOS / Linux</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><code><span class="prompt">$ </span>bash scripts/bootstrap_new_wiki.sh <span class="flag">--path</span> <span class="string">~/my-wiki</span> <span class="flag">--topic</span> <span class="string">my-topic</span> \
      <span class="flag">--name</span> <span class="string">"My Wiki"</span> <span class="flag">--variant</span> <span class="string">research</span></code></pre></div>
-    <div data-lang="zh"><p class="desc">创建完成后在该目录启动 Claude Code，运行 <code>/wiki-init</code> 初始化。</p></div>
-    <div data-lang="en"><p class="desc">Then start Claude Code <strong>in that folder</strong> and run <code>/wiki-init</code>.</p></div>
+    <div data-lang="zh"><p class="desc">创建后任选一端：Claude Code 运行 <code>/wiki-init</code>；Codex 运行 <code>$paper-wiki-project wiki-init</code>。</p></div>
+    <div data-lang="en"><p class="desc">Choose one runtime: Claude Code runs <code>/wiki-init</code>; Codex runs <code>$paper-wiki-project wiki-init</code>.</p></div>
   </section>
 
   <section class="section" id="commands">
-    <div data-lang="zh"><p class="section-label">命令</p><h2>命令速查</h2><p class="desc">在 bootstrap 创建的项目里以 <code>/wiki-*</code> 形式调用。装了 plugin 后，在任何目录用 <code>/paper-wiki:wiki-*</code>。</p></div>
-    <div data-lang="en"><p class="section-label">Commands</p><h2>Slash command reference</h2><p class="desc">Inside a bootstrapped project, use <code>/wiki-*</code>. With the plugin, use <code>/paper-wiki:wiki-*</code> from anywhere.</p></div>
+    <div data-lang="zh"><p class="section-label">命令</p><h2>双端 action 速查</h2><p class="desc">Claude Code 用 <code>/wiki-*</code>；Codex 用 <code>$paper-wiki-project wiki-*</code> 或自然语言点名 action。</p></div>
+    <div data-lang="en"><p class="section-label">Commands</p><h2>Dual-runtime action reference</h2><p class="desc">Claude Code uses <code>/wiki-*</code>; Codex uses <code>$paper-wiki-project wiki-*</code> or a natural-language request naming the action.</p></div>
     <table class="cmd-table" data-lang="zh"><thead><tr><th>命令</th><th>功能</th></tr></thead><tbody>
       <tr><td><code>/wiki-init</code></td><td>初始化（仅首次）：填写主题和种子论文 / 解包并清点材料</td></tr>
       <tr><td><code>/wiki-compile</code></td><td>读取 <code>raw/</code> 中的新材料，编译笔记，综合概念或主题</td></tr>
       <tr><td><code>/wiki-search-latest &lt;主题&gt;</code></td><td>搜索最新相关论文 <span class="tag">research</span></td></tr>
       <tr><td><code>/wiki-critique &lt;文件&gt;</code></td><td>对抗性审查：找漏洞、过度声明、公式错误</td></tr>
       <tr><td><code>/wiki-ideate &lt;gap&gt;</code></td><td>发现未试过的组合 <span class="tag">research</span></td></tr>
-      <tr><td><code>/teach &lt;问题&gt;</code></td><td>查询 + 交互式教学：跨论文对比、gap 状态汇总</td></tr>
+      <tr><td><code>/wiki-teach &lt;问题&gt;</code></td><td>paper-wiki 自带查询与教学，不依赖外部 <code>/teach</code></td></tr>
     </tbody></table>
-    <div class="tip" data-lang="zh"><strong>查询 wiki</strong> 用 <code>/teach &lt;问题&gt;</code>——它会自动读 wiki 笔记、标出处、展开交互式教学，wiki 里没有的内容会明确告知。</div>
+    <div class="tip" data-lang="zh"><strong>查询 wiki</strong> 用内置 <code>wiki-teach</code> action；wiki 里没有的内容会明确告知。</div>
     <table class="cmd-table" data-lang="en"><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>
       <tr><td><code>/wiki-init</code></td><td>One-time setup: fill topic + seeds (research) / unpack + inventory (course)</td></tr>
       <tr><td><code>/wiki-compile</code></td><td>Read new <code>raw/</code> material, write notes, synthesize concepts</td></tr>
       <tr><td><code>/wiki-search-latest &lt;topic&gt;</code></td><td>Find recent papers to import <span class="tag">research</span></td></tr>
       <tr><td><code>/wiki-critique &lt;file&gt;</code></td><td>Adversarial review: holes, overclaims, wrong formulas</td></tr>
       <tr><td><code>/wiki-ideate &lt;gap&gt;</code></td><td>Discover untried combinations <span class="tag">research</span></td></tr>
-      <tr><td><code>/teach &lt;question&gt;</code></td><td>Query + interactive teaching: cross-paper tables, gap dashboards</td></tr>
+      <tr><td><code>/wiki-teach &lt;question&gt;</code></td><td>Built-in query and teaching; no external <code>/teach</code> dependency</td></tr>
     </tbody></table>
-    <div class="tip" data-lang="en"><strong>To query the wiki,</strong> use <code>/teach &lt;question&gt;</code> — it reads wiki notes, cites sources, and teaches interactively. Absent content is explicitly flagged.</div>
+    <div class="tip" data-lang="en"><strong>To query the wiki,</strong> use the built-in <code>wiki-teach</code> action. Absent content is explicitly flagged.</div>
   </section>
 
   <!-- ══ Walkthroughs ══ -->
@@ -414,25 +418,29 @@ body {
     <div data-lang="zh"><p class="section-label">项目结构</p><h2>仓库里有什么</h2></div>
     <div data-lang="en"><p class="section-label">Project Layout</p><h2>What's inside</h2></div>
     <div class="file-tree" data-lang="zh">
-      <code class="dir">.claude-plugin/</code><span class="desc">— plugin 元数据（一键安装用）</span><br>
-      <code class="dir">skills/paper-wiki/</code><span class="desc">— skill 入口（Claude 的行为说明）</span><br>
+      <code class="dir">.claude-plugin/</code><span class="desc">— Claude Code plugin 元数据</span><br>
+      <code class="dir">.codex-plugin/</code><span class="desc">— Codex plugin manifest</span><br>
+      <code class="dir">.agents/plugins/</code><span class="desc">— Codex marketplace 元数据</span><br>
+      <code class="dir">skills/paper-wiki/</code><span class="desc">— 双端共用 skill 与 action 合约</span><br>
       <code class="dir">scripts/</code><span class="desc">— bootstrap 脚本 + OCR + PPTX 提取</span><br>
-      <code class="dir">commands/</code><span class="desc">— slash 命令定义</span><br>
+      <code class="dir">commands/</code><span class="desc">— Claude slash adapter 与共享流程正文</span><br>
       <code class="dir">agents/</code><span class="desc">— sub-agent（wiki-critic / wiki-searcher / wiki-ideator）</span><br>
       <code class="dir">templates/</code><span class="desc">— 各变体的模板文件</span><br>
-      <code class="dir">templates/memory/</code><span class="desc">— 占位 memory 文件</span><br>
+      <code class="dir">templates/memory/</code><span class="desc">— 不含 secret 的本地说明模板</span><br>
       <code class="dir">docs/</code><span class="desc">— 命令教程、OCR 配置指南、方法论、踩坑记录</span><br>
       <code class="dir">examples/</code><span class="desc">— 无 GPU 快速上手 + 示例 wiki</span><br>
       <code>docs/llm-wiki.protocol.yaml</code><span class="desc">— 机器可读的行为规约</span>
     </div>
     <div class="file-tree" data-lang="en">
-      <code class="dir">.claude-plugin/</code><span class="desc">— plugin metadata (one-command install)</span><br>
-      <code class="dir">skills/paper-wiki/</code><span class="desc">— SKILL.md (how Claude operates it)</span><br>
+      <code class="dir">.claude-plugin/</code><span class="desc">— Claude Code plugin metadata</span><br>
+      <code class="dir">.codex-plugin/</code><span class="desc">— Codex plugin manifest</span><br>
+      <code class="dir">.agents/plugins/</code><span class="desc">— Codex marketplace metadata</span><br>
+      <code class="dir">skills/paper-wiki/</code><span class="desc">— shared skill and action contracts</span><br>
       <code class="dir">scripts/</code><span class="desc">— bootstrap (.ps1 + .sh) + OCR + PPTX</span><br>
-      <code class="dir">commands/</code><span class="desc">— slash command definitions</span><br>
+      <code class="dir">commands/</code><span class="desc">— Claude slash adapters over shared workflows</span><br>
       <code class="dir">agents/</code><span class="desc">— sub-agents (wiki-critic / wiki-searcher / wiki-ideator)</span><br>
       <code class="dir">templates/</code><span class="desc">— {research, course} template files</span><br>
-      <code class="dir">templates/memory/</code><span class="desc">— placeholder memory files</span><br>
+      <code class="dir">templates/memory/</code><span class="desc">— non-secret local note templates</span><br>
       <code class="dir">docs/</code><span class="desc">— tutorial, OCR setup, methodology, gotchas</span><br>
       <code class="dir">examples/</code><span class="desc">— no-GPU quickstart + sample wiki</span><br>
       <code>docs/llm-wiki.protocol.yaml</code><span class="desc">— machine-readable behavior contract</span>

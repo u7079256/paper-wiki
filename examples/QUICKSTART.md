@@ -1,84 +1,157 @@
-# Quickstart — build a tiny wiki in ~5 minutes (no GPU needed)
+# Quickstart — build a tiny wiki in about 5 minutes
 
-This walkthrough proves the skill works **out of the box**. It uses the **no-OCR
-ingest path** (Claude WebFetches a paper's HTML and reads it directly), so you need
-only Claude Code + internet — **no remote GPU, no credentials**. Set up remote OCR
-later, only when you have scanned/large PDFs (see `../docs/GOTCHAS.md`).
+This example uses a born-digital arXiv paper, so it needs internet access but no
+GPU or OCR credentials. The generated project works in both Claude Code and Codex.
 
-> Windows PowerShell shown. **macOS / Linux:** use `scripts/bootstrap_new_wiki.sh`
-> (same flow; args `--path --topic --name --variant`).
+> Commands below use Windows PowerShell. On macOS/Linux, use
+> `scripts/bootstrap_new_wiki.sh` with `--path --topic --name --variant`.
 
-## 0. Install the plugin (optional — not needed to run the bootstrap)
-Install via the plugin marketplace (makes the `/paper-wiki:wiki-*` commands available
-globally):
+## 0. Optional global plugin install
+
+Global installation is convenient but not required for a bootstrapped project.
+
+Claude Code:
+
+```text
+/plugin marketplace add u7079256/paper-wiki
+/plugin install paper-wiki@paper-wiki
 ```
-> /plugin marketplace add u7079256/paper-wiki
-> /plugin install paper-wiki@paper-wiki
-```
-> **Manual alternative (not recommended):** `git clone` this repo and
-> `cp commands/*.md ~/.claude/commands/` + `cp agents/*.md ~/.claude/agents/`.
 
-## 1. Bootstrap a throwaway research wiki
+Codex terminal:
+
 ```powershell
-.\scripts\bootstrap_new_wiki.ps1 -NewPath D:\demo-wiki -Topic demo -ProjectName "Demo" -Variant research
+codex plugin marketplace add u7079256/paper-wiki
+codex plugin add paper-wiki@paper-wiki
 ```
-You now have `D:\demo-wiki\` with `raw/demo/`, `wiki/{papers,concepts,gaps,...}`,
-`.claude/{commands,agents}`, and a templated `CLAUDE.md` / `research.md`.
 
-## 2. Start Claude Code in the new folder
+## 1. Bootstrap a self-contained project
+
+From the cloned paper-wiki repository:
+
+```powershell
+.\scripts\bootstrap_new_wiki.ps1 -NewPath D:\demo-wiki -Topic demo `
+    -ProjectName "Demo" -Variant research
+```
+
+The new project includes both runtime adapters:
+
+```text
+D:\demo-wiki\
+├── WIKI.md
+├── CLAUDE.md
+├── AGENTS.md
+├── research.md
+├── .claude\commands\
+├── .agents\skills\paper-wiki-project\SKILL.md
+├── .paper-wiki\
+├── raw\demo\
+└── wiki\
+```
+
+`WIKI.md` is the only authoritative project rules file. `CLAUDE.md` and
+`AGENTS.md` are thin adapters.
+
+## 2. Start one runtime
+
+Choose **one** of these; do not run both against this workspace at the same time.
+
+Claude Code:
+
 ```powershell
 cd D:\demo-wiki
-claude            # or open this folder in your Claude Code IDE
+claude
 ```
-`CLAUDE.md` + the `/wiki-*` commands load automatically.
 
-## 3. Ingest one paper WITHOUT OCR (the out-of-box path)
-Paste this to Claude:
+Then invoke:
+
+```text
+/wiki-init
 ```
-Import arXiv:1706.03762 the no-OCR way:
-1. WebFetch https://arxiv.org/abs/1706.03762 to confirm the title/authors.
-2. WebFetch the HTML full text (try https://ar5iv.org/abs/1706.03762) and save the
-   extracted text to raw/demo/attention-is-all-you-need.md (raw is append-only).
-3. Then run /wiki-compile.
-Follow CLAUDE.md: read the whole thing, cite, never invent.
+
+Codex:
+
+```powershell
+cd D:\demo-wiki
+codex
 ```
-Claude reads the real source (so the note is faithful, not from memory) and writes
-`wiki/papers/attention-is-all-you-need.md` following the paper schema.
 
-## 4. Query it
+Then invoke either form:
+
+```text
+$paper-wiki-project wiki-init
 ```
-/teach What is the core contribution and what are the key components?
+
+```text
+Initialize this project with the paper-wiki wiki-init action.
 ```
-You get an answer grounded **only** in the compiled note, with citations; anything
-not in the wiki is reported as "not in wiki".
 
-## 5. What you should see
+Answer the initialization questions with the demo topic and arXiv seed
+`1706.03762` (Attention Is All You Need).
+
+## 3. Import without OCR and compile
+
+Ask the active runtime:
+
+```text
+Import arXiv:1706.03762 through the born-digital no-OCR path. Verify the title and
+authors from the abstract, fetch a faithful HTML/LaTeX full-text source, and save it
+under raw/demo/. Then run the paper-wiki wiki-compile action. Follow WIKI.md: read
+the complete source, cite it, never invent, and never edit raw/ after import.
 ```
-D:\demo-wiki\
-├── raw\demo\attention-is-all-you-need.md          # the fetched source (read-only)
-└── wiki\papers\attention-is-all-you-need.md       # the compiled note (frontmatter + sections + [[links]])
+
+Explicit action forms are:
+
+```text
+# Claude Code
+/wiki-compile
+
+# Codex
+$paper-wiki-project wiki-compile
 ```
-Add 2–3 more papers the same way, then ask Claude to `/wiki-compile` again — once
-≥3 share a theme it will synthesize a `wiki/concepts/<theme>.md`. That's the loop.
 
-## See a finished example without running anything
-`examples/sample-research-wiki/` is a small **illustrative** wiki (synthetic content,
-clearly labeled) showing the final shape: paper notes ↔ concept ↔ gap, all
-reverse-linked. Open it in Obsidian to see the graph.
+The result should include a compiled note under `wiki/papers/` with frontmatter,
+required sections, source locators, and `[[links]]`.
 
-## Available commands
-| command | what it does |
-|---|---|
-| `/wiki-init` | one-time: fill topic + seeds (research) / unpack + inventory (course) |
-| `/wiki-compile` | read new `raw/` material, write notes, synthesize concepts/topics |
-| `/wiki-search-latest <topic>` | (research) find recent papers to import |
-| `/wiki-critique <file>` | adversarial review: holes, overclaims, wrong formulas |
-| `/wiki-ideate <gap>` | (research) discover untried combinations |
+## 4. Query it with paper-wiki's built-in action
 
-> Query the wiki with `/teach <question>`. See `../docs/TUTORIAL.md` for details.
+Claude Code:
 
-## Going further
-- **Full command-by-command tutorial (both variants):** `../docs/TUTORIAL.md`.
-- Real corpora / scanned PDFs → set up OCR (local or remote GPU): `../docs/OCR-SETUP.md`.
-- Course materials instead of papers → bootstrap with `-Variant course`.
-- The full machine-readable contract Claude follows: `../docs/llm-wiki.protocol.yaml`.
+```text
+/wiki-teach What is the core contribution and what are the key components?
+```
+
+Codex:
+
+```text
+$paper-wiki-project wiki-teach What is the core contribution and what are the key components?
+```
+
+You should get an answer grounded only in the compiled wiki, with wiki paths,
+section names, and source locators. Missing information is reported as
+`not in wiki`. This action does not depend on a separately installed `/teach`.
+
+## 5. Switch runtimes safely
+
+Before moving from Claude Code to Codex or the reverse:
+
+1. Wait for the active action and all of its workers to finish.
+2. Exit or stop that runtime's task.
+3. Inspect the project working tree and resolve or record incomplete changes.
+4. Start the other runtime only after the workspace has a single writer again.
+
+The second runtime reads the same `WIKI.md`, `research.md`, `raw/`, and `wiki/`, so
+no export or conversion is needed.
+
+## 6. Next actions
+
+| Purpose | Claude Code | Codex |
+|---|---|---|
+| Compile new sources | `/wiki-compile` | `$paper-wiki-project wiki-compile` |
+| Find recent papers | `/wiki-search-latest <topic>` | `$paper-wiki-project wiki-search-latest <topic>` |
+| Adversarial review | `/wiki-critique <file>` | `$paper-wiki-project wiki-critique <file>` |
+| Research ideation | `/wiki-ideate <gap>` | `$paper-wiki-project wiki-ideate <gap>` |
+| Query or learn | `/wiki-teach <question>` | `$paper-wiki-project wiki-teach <question>` |
+
+See [the full tutorial](../docs/TUTORIAL.md),
+[the machine contract](../docs/llm-wiki.protocol.yaml), and
+[the sample research wiki](sample-research-wiki/).

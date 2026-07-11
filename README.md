@@ -1,13 +1,13 @@
 <p align="center">
   <h1 align="center">📚 paper-wiki</h1>
   <p align="center"><b>丢论文进去，编译出知识图谱。</b></p>
-  <p align="center">不是 RAG，是 LLM Wiki——Claude 逐页读完每篇论文，写成带引用的笔记，交叉综合出概念和研究空白。</p>
+  <p align="center">不是 RAG：Claude Code 或 Codex 逐页读完材料，写成带引用的笔记，再综合出概念与研究空白。</p>
 </p>
 
 <p align="center">
   <a href="https://u7079256.github.io/paper-wiki/"><img src="https://img.shields.io/badge/Landing_Page-blue?style=for-the-badge" alt="Landing Page"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT License"></a>
-  <a href="https://claude.ai/code"><img src="https://img.shields.io/badge/Claude_Code-Plugin-8A2BE2?style=for-the-badge" alt="Claude Code Plugin"></a>
+  <img src="https://img.shields.io/badge/Claude_Code_%2B_Codex-Compatible-8A2BE2?style=for-the-badge" alt="Claude Code and Codex compatible">
 </p>
 
 <p align="center">
@@ -16,185 +16,287 @@
 
 ---
 
-## ⚡ 一键安装
+## ⚡ 安装
 
-```
+### Claude Code
+
+在 Claude Code 中运行：
+
+```text
 /plugin marketplace add u7079256/paper-wiki
 /plugin install paper-wiki@paper-wiki
 ```
 
-装完后 `/paper-wiki:wiki-*` 命令全局可用。后续更新：`/plugin marketplace update paper-wiki`。
+全局入口是 `/paper-wiki:wiki-*`。更新 marketplace：
+`/plugin marketplace update paper-wiki`。
 
-<details>
-<summary>💡 遇到 SSH 报错？/ 不想装 plugin？</summary>
+### Codex
 
-**SSH host-key 报错**：plugin 安装走 SSH 克隆。报 `No ED25519 host key is known for github.com` 时执行一次：
+Codex 端安装的是 **plugin + skill**，不是把 Claude Code 的 slash commands
+原样搬过去。同一套 Codex plugin 可供 Codex app、CLI 和 IDE extension 使用；
+下面以可复现的 CLI 路径为主。先确认当前版本提供 plugin 命令：
+
+```powershell
+codex plugin --help
 ```
-ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+
+#### 注册并安装
+
+推荐用 CLI，步骤可复现，也适合远程开发机：
+
+```powershell
+codex plugin marketplace add u7079256/paper-wiki
+codex plugin add paper-wiki@paper-wiki
+codex plugin list
 ```
 
-**不用 plugin**：直接 `git clone` 本仓库，用 bootstrap 脚本创建项目——项目自带 `/wiki-*` 命令，不依赖 plugin。
-</details>
+也可以先运行第一条命令注册 marketplace，然后启动 `codex`，在 Codex
+输入框输入 `/plugins`，切换到 **Paper Wiki** marketplace 并选择安装。安装完成后
+请新开一个 Codex task，让新的 skill 清单进入会话。
+
+> [!NOTE]
+> `codex plugin ...` 在 PowerShell、Bash 等**终端**里运行；`/plugins` 和
+> `$paper-wiki:paper-wiki` 则输入到 **Codex task 的对话框**。前半段是 plugin
+> namespace，后半段是 skill 名；它不是环境变量，也不是 shell 命令。
+
+#### 在 Codex 中调用
+
+全局 plugin 安装后，显式入口是 `$paper-wiki:paper-wiki <action>`：
+
+```text
+$paper-wiki:paper-wiki init
+$paper-wiki:paper-wiki compile
+$paper-wiki:paper-wiki critique wiki/papers/example.md
+$paper-wiki:paper-wiki teach "这个 wiki 中的方法分成哪几类？"
+```
+
+也可以直接用自然语言，例如：“用 paper-wiki 编译当前 wiki 的新材料”。显式写
+`$paper-wiki:paper-wiki` 更适合第一次使用或需要固定 action 的场景。
+
+bootstrap 生成的项目会自带
+`.agents/skills/paper-wiki-project/SKILL.md`，因此即使没有安装全局 plugin，进入
+项目后也能这样调用：
+
+```text
+$paper-wiki-project wiki-init
+$paper-wiki-project wiki-compile
+$paper-wiki-project wiki-teach "解释这个概念"
+```
+
+#### 更新与验证
+
+```powershell
+codex plugin marketplace upgrade paper-wiki
+codex plugin add paper-wiki@paper-wiki
+codex plugin marketplace list --json
+codex plugin list --marketplace paper-wiki --available --json
+```
+
+刷新 marketplace 后重新执行 `plugin add`，再新开 task 使用新版 skill。
+
+#### SessionStart 更新检查与 hook 信任
+
+plugin 内置一个 `SessionStart` 更新检查 hook。启用后，每次新会话会启动一个轻量
+后台 worker。某个已安装版本成功检查后，后续会话会在 24 小时内复用它自己的缓存；
+不同安装版本使用独立的
+`~/.cache/paper-wiki/update-check-<version-hash>.json`，不会让 Claude Code 与 Codex
+之间版本串线。首次并发启动的会话可能各自发起检查，网络或 HTTP 失败也不会写入
+成功缓存，因此后续会话可能重试。hook 只保存是否有更新、已安装版本、最新版本和检查
+时间，只负责提醒，不会自动下载、安装或更新任何内容；提醒中会显示对应 runtime 的
+更新命令。
+
+Codex 会自动发现 `hooks/hooks.json`，但安装或启用 plugin **不等于信任它的 hook**。
+首次运行前请审查 hook，并在 Codex 的 trust 提示中明确允许；拒绝或跳过不会影响
+`$paper-wiki:paper-wiki`，只是不会运行后台检查或显示更新提醒。
+
+#### Codex 端如何分发
+
+目前采用 **GitHub marketplace 分发**，还不是 OpenAI curated Plugins Directory
+中的官方条目：
+
+```text
+GitHub 仓库
+  → .agents/plugins/marketplace.json   # 让 Codex 发现 paper-wiki
+  → .codex-plugin/plugin.json          # 声明插件元数据和 skills/
+  → skills/paper-wiki/SKILL.md         # 提供全局 $paper-wiki:paper-wiki
+  → $CODEX_HOME/plugins/cache/...      # Codex 管理的本地安装副本
+```
+
+用户只需添加一次 GitHub marketplace。仓库是发布源，cache 是 Codex 的内部安装
+副本，不应手动修改。`.agents/plugins/marketplace.json` 中的 `source.path` 是
+`./`，所以同一个 GitHub 仓库既是 marketplace root，也是 plugin root，不需要再维护
+一份 Codex 专用 fork。新版本发布时同步更新版本号并推送仓库；用户执行上面的
+`marketplace upgrade` + `plugin add` 即可更新。若以后要让用户无需先添加 GitHub
+仓库、直接在公共插件目录中发现，还需要走 OpenAI 的
+[plugin 提交流程](https://learn.chatgpt.com/docs/submit-plugins)。Codex plugin 与
+marketplace 的官方结构说明见
+[Build plugins](https://learn.chatgpt.com/docs/build-plugins)。
+
+如果只想让某个 wiki 自包含，也可以直接
+`git clone https://github.com/u7079256/paper-wiki.git`，再用 bootstrap 脚本创建
+项目；生成项目不依赖全局 plugin，Claude Code 与 Codex 都能直接使用。
 
 ---
 
-## 🧠 核心理念：LLM Wiki vs RAG
+## 一套 Wiki，两端操作
 
-```
-RAG:   提问 → 检索片段 → 拼答案 → 质量取决于切分和召回
-Wiki:  源文献 → 逐页通读 → 编译笔记 → 综合概念 → 知识图谱 (一次编译，反复查询)
+bootstrap 会生成一份双端自包含项目：
+
+- `WIKI.md` 是**唯一业务规则权威**，保存 variant、schema、编译规则与禁止事项。
+- `CLAUDE.md` 和 `AGENTS.md` 都是薄适配层，只负责把对应 runtime 引向
+  `WIKI.md`，不各自复制规则。
+- Claude Code 使用 `.claude/commands/`；Codex 使用
+  `.agents/skills/paper-wiki-project/SKILL.md`。
+- `research.md`、`raw/`、`wiki/` 由两端共享，切换后会看到同一份状态。
+
+> [!IMPORTANT]
+> **同一 workspace 只能有一个写入者。** 不要让 Claude Code 与 Codex 同时修改
+> 同一个 wiki。切换前先等上一项任务结束，并检查工作树是否有未完成改动。
+
+### 调用映射
+
+Claude Code 的 `/wiki-*` 是 slash commands；它们不会在 Codex 中原样变成
+slash commands。Codex 加载的是 skill，所以使用 `$paper-wiki:paper-wiki`、
+`$paper-wiki-project` 或自然语言点名 action。
+
+| Action | Claude Code 项目内 | Codex 项目内 | 全局 plugin |
+|---|---|---|---|
+| 初始化 | `/wiki-init` | `$paper-wiki-project wiki-init` | Claude `/paper-wiki:wiki-init`；Codex `$paper-wiki:paper-wiki init` |
+| 编译 | `/wiki-compile` | `$paper-wiki-project wiki-compile` | Claude `/paper-wiki:wiki-compile`；Codex `$paper-wiki:paper-wiki compile` |
+| 搜论文 | `/wiki-search-latest <主题>` | `$paper-wiki-project wiki-search-latest <主题>` | Claude `/paper-wiki:wiki-search-latest`；Codex `$paper-wiki:paper-wiki search` |
+| 审查 | `/wiki-critique <文件>` | `$paper-wiki-project wiki-critique <文件>` | Claude `/paper-wiki:wiki-critique`；Codex `$paper-wiki:paper-wiki critique` |
+| 构思 | `/wiki-ideate <gap>` | `$paper-wiki-project wiki-ideate <gap>` | Claude `/paper-wiki:wiki-ideate`；Codex `$paper-wiki:paper-wiki ideate` |
+| 查询/教学 | `/wiki-teach <问题>` | `$paper-wiki-project wiki-teach <问题>` | Claude `/paper-wiki:wiki-teach`；Codex `$paper-wiki:paper-wiki teach` |
+
+Codex 也支持自然语言，例如：“按 paper-wiki 的 `wiki-compile` action 编译新材料”。
+`wiki-teach` 是 paper-wiki 自带的中立查询 action，不依赖两端另装 `/teach`。
+
+---
+
+## 🧠 LLM Wiki vs RAG
+
+```text
+RAG:   提问 → 检索片段 → 拼答案 → 质量取决于切分与召回
+Wiki:  源材料 → 逐页通读 → 编译笔记 → 综合概念 → 可持续维护的知识图谱
 ```
 
 | | RAG | LLM Wiki |
 |---|---|---|
-| 何时读 | 查询时临时检索 | 编译时一次性通读 |
+| 何时读 | 查询时临时检索 | 编译时完整阅读 |
 | 知识形态 | 碎片向量 | 结构化笔记 + 双向链接 |
-| 跨源综合 | 无 | 自动生成概念条目 + 研究空白 |
-| 可信度 | 拼接可能断章取义 | 每句话标注出处 |
+| 跨源综合 | 弱 | 概念条目 + 研究空白 |
+| 可信度 | 可能断章取义 | 每条主张标注出处 |
+
+核心铁律：`raw/` 只读且只追加；`wiki/` 可重写；每条主张都能回溯到实际读过的
+源材料；wiki 没有的内容明确说 `not in wiki`，不能拿模型记忆补齐。
 
 ---
 
-## 🔄 工作流一览
+## 🔄 工作流
 
-```
-/wiki-init → 导入论文 → /wiki-compile → /wiki-critique → /wiki-ideate
-                                ↓                              ↓
-                          /wiki-search-latest ←── 发现缺失覆盖 ──┘
+```text
+wiki-init → 导入材料 → wiki-compile → wiki-critique → wiki-ideate
+                                ↓                         ↓
+                         wiki-search-latest ←── 覆盖缺口 ─┘
                                 ↓
-                          /wiki-compile → /teach (深入理解)
+                         wiki-compile → wiki-teach
 ```
 
-> **Scope fence** 守住边界：定义核心聚焦、相邻可纳入、硬排除范围，agent 自动据此筛选。
-> **Lifecycle** 控制节奏：`BUILDING` → `ACTIVE` → `FROZEN`，wiki 知道什么时候该停。
+`research` 变体使用 `papers → concepts → gaps`；`course` 变体使用
+`lectures + practice → topics`。Scope fence 管边界，生命周期
+`BUILDING → ACTIVE → FROZEN` 管扩展节奏。
 
 ---
 
-## 📋 两种变体
+## 🚀 创建双端项目
 
-| | **research**（科研） | **course**（课程） |
-|---|---|---|
-| 源材料 | 论文（arXiv / 网页） | 讲义 / 实验 / 作业 |
-| 主笔记层 | `wiki/papers/` | `wiki/lectures/` + `wiki/practice/` |
-| 综合层 | `wiki/concepts/` | `wiki/topics/` |
-| 特色功能 | `wiki/gaps/` + `/wiki-ideate` | `wiki/exam-scope.md` |
-| 外部检索 | `/wiki-search-latest` | — |
-| Scope fence | ✅ | — |
-
----
-
-## 🛠️ 命令速查
-
-| 命令 | 功能 |
-|---|---|
-| `/wiki-init` | 初始化：填写主题、种子论文、scope fence |
-| `/wiki-compile` | 编译 `raw/` 中的新材料 → 笔记 → 概念 → gap |
-| `/wiki-search-latest <主题>` | 搜索最新论文（research） |
-| `/wiki-critique <文件>` | 对抗性审查：找漏洞、过度声明、公式错误 |
-| `/wiki-ideate <gap>` | 发现未试过的方法-问题组合（research） |
-| `/teach <问题>` | 查询 + 交互式教学：跨论文对比、gap 状态汇总 |
-
----
-
-## 🚀 5 分钟快速上手（不需要 GPU）
+Windows PowerShell：
 
 ```powershell
-# 1. 创建项目
-.\scripts\bootstrap_new_wiki.ps1 -NewPath D:\demo-wiki -Topic demo `
-    -ProjectName "Demo" -Variant research
-
-# 2. 进入项目
-cd D:\demo-wiki && claude
-
-# 3. 在 Claude Code 中导入一篇论文 + 编译 + 查询
-```
-
-完整步骤见 **[examples/QUICKSTART.md](examples/QUICKSTART.md)**。
-示例 wiki 产出见 **[examples/sample-research-wiki/](examples/sample-research-wiki/)**。
-
----
-
-## 📖 使用场景走读
-
-三个研究者的完整使用故事——从创建到投稿：
-
-| 场景 | 角色 | 周期 | 重点 |
-|---|---|---|---|
-| A | PhD 生，新方向 | 8 周 | scope fence 延迟填写、ideate 发现方向 |
-| B | 资深研究者 | 4 周 | 闪电验证 + 快速写作 |
-| C | 长期维护者 | 6 周 | 跨论文复用、`--Update` 更新命令 |
-
-详见 **[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)**。
-
----
-
-<details>
-<summary>🏗️ 创建 wiki 项目（bootstrap 详情）</summary>
-
-bootstrap 脚本生成完整项目骨架：`raw/` + `wiki/` 两层结构、`.claude/{commands,agents}`、OCR 脚本、变体模板。
-
-**Windows PowerShell：**
-```powershell
+git clone https://github.com/u7079256/paper-wiki.git
+cd paper-wiki
 .\scripts\bootstrap_new_wiki.ps1 -NewPath D:\my-wiki -Topic my-topic `
-    -ProjectName "My Wiki" -Variant research      # 或 -Variant course
+    -ProjectName "My Wiki" -Variant research   # 或 course
 ```
 
-**macOS / Linux：**
+macOS / Linux：
+
 ```bash
+git clone https://github.com/u7079256/paper-wiki.git
+cd paper-wiki
 bash scripts/bootstrap_new_wiki.sh --path ~/my-wiki --topic my-topic \
-    --name "My Wiki" --variant research            # 或 --variant course
+    --name "My Wiki" --variant research        # 或 course
 ```
 
-项目创建完成后，在该目录启动 Claude Code，运行 `/wiki-init`。
+然后任选一端启动：
 
-**更新已有项目的命令/agent**（不碰 CLAUDE.md 和 research.md）：
+```powershell
+cd D:\my-wiki
+claude   # 随后运行 /wiki-init
+# 或
+codex    # 随后运行 $paper-wiki-project wiki-init
+```
+
+完整无 GPU 示例见 [examples/QUICKSTART.md](examples/QUICKSTART.md)，逐 action
+教程见 [docs/TUTORIAL.md](docs/TUTORIAL.md)。
+
+### 更新已有项目
+
 ```powershell
 .\scripts\bootstrap_new_wiki.ps1 -NewPath D:\my-wiki -Update
 ```
 
-**命令作用域**：bootstrap 装的是项目级命令（`/wiki-*`）；plugin 装的是全局命令（`/paper-wiki:wiki-*`）。同一套命令，命名空间不同。
-</details>
-
-<details>
-<summary>🔬 OCR 配置（扫描版 / 图表密集 PDF）</summary>
-
-OCR 在 **GPU 上运行**（本地或远程），不支持纯 CPU。born-digital 论文可跳过 OCR 走 WebFetch 路径。
-
-- **本地 GPU：** `conda activate mineru; python scripts/mineru_local_ocr.py`
-- **远程 GPU：** 凭据走环境变量，绝不写进仓库：
-  ```
-  $env:MINERU_REMOTE_HOST = "<你的 GPU 主机>"
-  $env:MINERU_REMOTE_USER = "<SSH 用户名>"
-  $env:MINERU_REMOTE_PASS = "<密码>"
-  python scripts/mineru_remote_ocr.py
-  ```
-- **PPTX**：先转 PDF（`soffice --headless --convert-to pdf`）或 `scripts/extract_pptx.py`（有损）。
-
-详见 **[docs/OCR-SETUP.md](docs/OCR-SETUP.md)**。
-</details>
-
-<details>
-<summary>🔒 安全须知</summary>
-
-- 本仓库**不含任何凭据**。OCR 脚本里的 host/user 都是占位符，密码从环境变量读取。
-- `templates/memory/remote-ocr-gpu-server.md.tmpl` 是模板文件——填入实际信息后不要提交。
-</details>
-
-<details>
-<summary>📁 项目结构</summary>
-
+```bash
+bash scripts/bootstrap_new_wiki.sh --path ~/my-wiki --update
 ```
-.claude-plugin/             plugin 元数据（一键安装用）
-skills/paper-wiki/SKILL.md  skill 入口（Claude 的行为说明）
-scripts/                    bootstrap (.ps1 + .sh) + OCR + PPTX 提取
-commands/                   slash 命令定义
-agents/                     sub-agent（wiki-critic / wiki-searcher / wiki-ideator）
-templates/{research,course} 各变体的 CLAUDE.md / research.md / README.md 模板
-docs/                       TUTORIAL / WALKTHROUGH / OCR-SETUP / METHODOLOGY / GOTCHAS
-examples/                   QUICKSTART + 示例 wiki
-```
-</details>
+
+`-Update` / `--update` 会刷新受管的 Claude commands/agents、Codex 项目 skill、
+薄适配层、manifest 和项目内协议文档；**不会覆盖** `WIKI.md`、`research.md`、
+项目 `README.md`、`raw/` 或 `wiki/`。旧版 Claude-only 项目首次更新时，会先把
+原完整 `CLAUDE.md` 迁移成 `WIKI.md`，再把 `CLAUDE.md` 收薄。若 variant 信息冲突，
+脚本会停止，不会猜测。
 
 ---
+
+## 🔬 OCR
+
+扫描版、课件和图表密集 PDF 使用本地或远程 GPU OCR；不允许静默降级到 CPU。
+Born-digital 论文可走 HTML/LaTeX 的无 OCR 路径。凭据只放环境变量，绝不能进仓库。
+
+详见 [docs/OCR-SETUP.md](docs/OCR-SETUP.md) 与
+[docs/GOTCHAS.md](docs/GOTCHAS.md)。
+
+---
+
+## 📁 仓库与生成项目结构
+
+```text
+paper-wiki/
+├── .claude-plugin/              # Claude Code marketplace 元数据
+├── .codex-plugin/               # Codex plugin manifest
+├── .agents/plugins/             # Codex marketplace 元数据
+├── skills/paper-wiki/           # 全局 plugin skill
+├── commands/                    # Claude slash adapters，正文共享 action 契约
+├── agents/                      # reviewer/searcher/ideator worker 定义
+├── templates/{research,course}/ # WIKI.md + 薄 adapters + 项目 skill
+├── scripts/                     # bootstrap、OCR、PPTX 提取
+├── docs/                        # protocol、教程与方法论
+└── examples/                    # quickstart 与示例 wiki
+
+bootstrapped-project/
+├── WIKI.md                      # 唯一业务规则权威
+├── CLAUDE.md                    # Claude Code 薄适配层
+├── AGENTS.md                    # Codex 薄适配层
+├── research.md                  # 两端共享状态
+├── .claude/{commands,agents}/   # Claude Code 项目入口
+├── .agents/skills/paper-wiki-project/SKILL.md
+├── .paper-wiki/                 # manifest + 自包含协议文档
+├── raw/                         # 只读源材料
+└── wiki/                        # 可维护的编译产物
+```
+
+机器契约见 [docs/llm-wiki.protocol.yaml](docs/llm-wiki.protocol.yaml)，当前版本
+`llm-wiki/1.1`。
 
 ## 📄 许可证
 
@@ -202,5 +304,5 @@ MIT
 
 ## 🙏 致谢
 
-- 📖 [mattpocock/skills — teach](https://github.com/mattpocock/skills/tree/main/skills/productivity/teach)：启发了 wiki + teach 集成的教学方法论
-- 感谢参与内部测试和早期使用的朋友们，方法论和踩坑记录都来自你们的实战反馈
+- [mattpocock/skills — teach](https://github.com/mattpocock/skills/tree/main/skills/productivity/teach) 启发了交互式教学方法；paper-wiki 现在把查询能力作为自身 `wiki-teach` action 提供。
+- 感谢早期使用者把真实项目里的方法论与坑带回这个仓库。

@@ -32,19 +32,94 @@
 
 ### Codex
 
-在终端运行：
+Codex 端安装的是 **plugin + skill**，不是把 Claude Code 的 slash commands
+原样搬过去。同一套 Codex plugin 可供 Codex app、CLI 和 IDE extension 使用；
+下面以可复现的 CLI 路径为主。先确认当前版本提供 plugin 命令：
+
+```powershell
+codex plugin --help
+```
+
+#### 注册并安装
+
+推荐用 CLI，步骤可复现，也适合远程开发机：
 
 ```powershell
 codex plugin marketplace add u7079256/paper-wiki
 codex plugin add paper-wiki@paper-wiki
+codex plugin list
 ```
 
-全局入口是 `$paper-wiki <action>`。刷新 marketplace：
-`codex plugin marketplace upgrade paper-wiki`。
+也可以先运行第一条命令注册 marketplace，然后启动 `codex`，在 Codex
+输入框输入 `/plugins`，切换到 **Paper Wiki** marketplace 并选择安装。安装完成后
+请新开一个 Codex task，让新的 skill 清单进入会话。
 
-也可以直接 `git clone https://github.com/u7079256/paper-wiki.git`，再用
-bootstrap 脚本创建项目；生成的项目不依赖全局 plugin，Claude Code 与 Codex
-都能直接使用。
+> [!NOTE]
+> `codex plugin ...` 在 PowerShell、Bash 等**终端**里运行；`/plugins` 和
+> `$paper-wiki` 则输入到 **Codex task 的对话框**。`$paper-wiki` 不是环境变量，
+> 也不是 shell 命令。
+
+#### 在 Codex 中调用
+
+全局 plugin 安装后，显式入口是 `$paper-wiki <action>`：
+
+```text
+$paper-wiki init
+$paper-wiki compile
+$paper-wiki critique wiki/papers/example.md
+$paper-wiki teach "这个 wiki 中的方法分成哪几类？"
+```
+
+也可以直接用自然语言，例如：“用 paper-wiki 编译当前 wiki 的新材料”。显式写
+`$paper-wiki` 更适合第一次使用或需要固定 action 的场景。
+
+bootstrap 生成的项目会自带
+`.agents/skills/paper-wiki-project/SKILL.md`，因此即使没有安装全局 plugin，进入
+项目后也能这样调用：
+
+```text
+$paper-wiki-project wiki-init
+$paper-wiki-project wiki-compile
+$paper-wiki-project wiki-teach "解释这个概念"
+```
+
+#### 更新与验证
+
+```powershell
+codex plugin marketplace upgrade paper-wiki
+codex plugin add paper-wiki@paper-wiki
+codex plugin marketplace list --json
+codex plugin list --marketplace paper-wiki --available --json
+```
+
+刷新 marketplace 后重新执行 `plugin add`，再新开 task 使用新版 skill。
+
+#### Codex 端如何分发
+
+目前采用 **GitHub marketplace 分发**，还不是 OpenAI curated Plugins Directory
+中的官方条目：
+
+```text
+GitHub 仓库
+  → .agents/plugins/marketplace.json   # 让 Codex 发现 paper-wiki
+  → .codex-plugin/plugin.json          # 声明插件元数据和 skills/
+  → skills/paper-wiki/SKILL.md         # 提供全局 $paper-wiki
+  → $CODEX_HOME/plugins/cache/...      # Codex 管理的本地安装副本
+```
+
+用户只需添加一次 GitHub marketplace。仓库是发布源，cache 是 Codex 的内部安装
+副本，不应手动修改。`.agents/plugins/marketplace.json` 中的 `source.path` 是
+`./`，所以同一个 GitHub 仓库既是 marketplace root，也是 plugin root，不需要再维护
+一份 Codex 专用 fork。新版本发布时同步更新版本号并推送仓库；用户执行上面的
+`marketplace upgrade` + `plugin add` 即可更新。若以后要让用户无需先添加 GitHub
+仓库、直接在公共插件目录中发现，还需要走 OpenAI 的
+[plugin 提交流程](https://learn.chatgpt.com/docs/submit-plugins)。Codex plugin 与
+marketplace 的官方结构说明见
+[Build plugins](https://learn.chatgpt.com/docs/build-plugins)。
+
+如果只想让某个 wiki 自包含，也可以直接
+`git clone https://github.com/u7079256/paper-wiki.git`，再用 bootstrap 脚本创建
+项目；生成项目不依赖全局 plugin，Claude Code 与 Codex 都能直接使用。
 
 ---
 
@@ -64,6 +139,10 @@ bootstrap 会生成一份双端自包含项目：
 > 同一个 wiki。切换前先等上一项任务结束，并检查工作树是否有未完成改动。
 
 ### 调用映射
+
+Claude Code 的 `/wiki-*` 是 slash commands；它们不会在 Codex 中原样变成
+slash commands。Codex 加载的是 skill，所以使用 `$paper-wiki`、
+`$paper-wiki-project` 或自然语言点名 action。
 
 | Action | Claude Code 项目内 | Codex 项目内 | 全局 plugin |
 |---|---|---|---|

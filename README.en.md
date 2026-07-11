@@ -32,19 +32,100 @@ Global entry point: `/paper-wiki:wiki-*`. Refresh the marketplace with
 
 ### Codex
 
-Run in a terminal:
+Codex installs a **plugin + skill**; it does not turn the Claude Code slash
+commands into Codex slash commands. The same Codex plugin works across the Codex
+app, CLI, and IDE extension; the reproducible CLI path is shown below. First
+confirm that your Codex version exposes the plugin CLI:
+
+```powershell
+codex plugin --help
+```
+
+#### Register and install
+
+The CLI path is reproducible and works well on remote development machines:
 
 ```powershell
 codex plugin marketplace add u7079256/paper-wiki
 codex plugin add paper-wiki@paper-wiki
+codex plugin list
 ```
 
-Global entry point: `$paper-wiki <action>`. Refresh the marketplace with
-`codex plugin marketplace upgrade paper-wiki`.
+Alternatively, run the first command to register the marketplace, start `codex`,
+enter `/plugins` in the Codex composer, select the **Paper Wiki** marketplace,
+and install the plugin there. Start a new Codex task after installation so the
+new skill inventory is loaded.
 
-You can also clone the repository and run the bootstrap script. The generated
-project is self-contained and works in both Claude Code and Codex without a global
-plugin installation.
+> [!NOTE]
+> Run `codex plugin ...` in a **terminal** such as PowerShell or Bash. Enter
+> `/plugins` and `$paper-wiki` in the **Codex task composer**. `$paper-wiki` is
+> a skill invocation, not an environment variable or shell command.
+
+#### Invoke it in Codex
+
+After a global install, use `$paper-wiki <action>` explicitly:
+
+```text
+$paper-wiki init
+$paper-wiki compile
+$paper-wiki critique wiki/papers/example.md
+$paper-wiki teach "Which method families are covered by this wiki?"
+```
+
+Natural language also works, for example: “Use paper-wiki to compile the new
+sources in the current wiki.” Explicit `$paper-wiki` calls are useful on first
+use or when you want to pin the action.
+
+A bootstrapped project contains
+`.agents/skills/paper-wiki-project/SKILL.md`, so it remains usable without a
+global plugin install:
+
+```text
+$paper-wiki-project wiki-init
+$paper-wiki-project wiki-compile
+$paper-wiki-project wiki-teach "Explain this concept"
+```
+
+#### Update and verify
+
+```powershell
+codex plugin marketplace upgrade paper-wiki
+codex plugin add paper-wiki@paper-wiki
+codex plugin marketplace list --json
+codex plugin list --marketplace paper-wiki --available --json
+```
+
+After refreshing the marketplace, run `plugin add` again and start a new task to
+load the updated skill.
+
+#### How the Codex package is distributed
+
+Paper Wiki currently uses a **GitHub marketplace**; it is not yet an official
+entry in OpenAI's curated Plugins Directory:
+
+```text
+GitHub repository
+  → .agents/plugins/marketplace.json   # lets Codex discover paper-wiki
+  → .codex-plugin/plugin.json          # declares metadata and skills/
+  → skills/paper-wiki/SKILL.md         # provides global $paper-wiki
+  → $CODEX_HOME/plugins/cache/...      # Codex-managed installed copy
+```
+
+Users add the GitHub marketplace once. The repository is the release source;
+the cache is an internal Codex copy and should not be edited manually.
+`.agents/plugins/marketplace.json` uses `source.path: "./"`, so the same GitHub
+repository is both the marketplace root and the plugin root; no Codex-only fork
+is required. A release
+updates the version metadata and repository, then users run `marketplace upgrade`
+and `plugin add` as shown above. Publishing directly in the public directory
+would additionally require OpenAI's
+[plugin submission process](https://learn.chatgpt.com/docs/submit-plugins).
+See [Build plugins](https://learn.chatgpt.com/docs/build-plugins) for the official
+Codex plugin and marketplace layout.
+
+If you only need a self-contained wiki, clone the repository and run the
+bootstrap script instead. The generated project works in both Claude Code and
+Codex without a global plugin installation.
 
 ---
 
@@ -66,6 +147,10 @@ Bootstrap creates a dual-runtime project:
 > finish and inspect the working tree for incomplete changes.
 
 ### Invocation map
+
+Claude Code exposes `/wiki-*` slash commands. Codex does not mirror those slash
+commands; it loads skills, so use `$paper-wiki`, `$paper-wiki-project`, or name
+the action in natural language.
 
 | Action | Claude Code project | Codex project | Global plugin |
 |---|---|---|---|

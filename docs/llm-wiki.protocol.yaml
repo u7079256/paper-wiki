@@ -40,7 +40,7 @@ invariants:
   whole_source: "read the entire source, including appendix or every slide, before writing its note"
   identity_check: "verify downloaded title equals the expected source before compiling; mismatch means stop and write no note"
   gpu_ocr_no_cpu: "OCR runs on a local or remote GPU; no GPU means use the no-OCR path only for born-digital sources"
-  ocr_committed_only: "an OCR-derived source is eligible for compilation only when its completion manifest and a regular non-link sibling _paper-wiki-ocr-batch-<32 lowercase hex>.committed.json marker form a valid matching paper-wiki/ocr-batch/v1 record; missing, malformed, pending, aborted, linked, or mismatched batches are blocked"
+  ocr_committed_only: "before reading OCR body text, require matching paper-wiki/ocr-completion/v2 and paper-wiki/ocr-batch/v2 records with paper-wiki/ocr-content/v1 fingerprints; copy all declared regular single-link content through identity-bound no-follow handles into an owner-only snapshot while hashing, verify the exact file set, per-file size/SHA-256 and canonical tree_sha256, and read only the snapshot; legacy v1, missing, malformed, pending, aborted, linked, escaped, changed, or mismatched sources are blocked"
   reverse_links: "connect notes with [[id]] links; lint orphans, dangling links, and contradictions"
   secrets_never_in_repo: "credentials are environment variables only; never store them in the repository"
   no_outward_for_content: "compilation uses only project sources; outward research search is a separate explicit action"
@@ -92,7 +92,7 @@ entrypoints:
     adapters: ".claude/commands/wiki-*.md"
   codex:
     project: "$paper-wiki-project wiki-<action>"
-    plugin: "$paper-wiki <action>"
+    plugin: "$paper-wiki:paper-wiki <action>"
     natural_language: "Ask Codex to run the named paper-wiki action in the current project."
     adapter: ".agents/skills/paper-wiki-project/SKILL.md"
   action_map:
@@ -230,8 +230,43 @@ pipelines:
     env_remote: [MINERU_REMOTE_HOST, MINERU_REMOTE_USER, MINERU_REMOTE_PASS, MINERU_NS, MINERU_REMOTE_ACTIVATE]
     namespace: "mineru_<ns>_* isolates temporary paths, not the GPU"
     output: "raw/<topic>/mineru/<name>/auto/<name>.md plus images/"
-    publication: "recoverable append-only batch protocol; pending is an audit journal, committed is the sole commit point, and aborted records a batch that must not be consumed"
-    consume: "read _paper-wiki-ocr-complete.json; accept batch_commit_marker only as a basename matching _paper-wiki-ocr-batch-[0-9a-f]{32}.committed.json; require the sibling to be a regular non-link/non-reparse JSON file with schema paper-wiki/ocr-batch/v1, resolution committed, the same batch_id, and exactly one matching source record for source/source_pdf/source_pdf_size/source_pdf_sha256"
+    publication: "recoverable append-only batch protocol; pending is an audit journal, committed is the sole commit point, and aborted records a batch that must not be consumed; validate portable names, regular single-link entries, manifests, and a pre/post atomic-move tree-identity snapshot before publishing committed"
+    input_snapshot: "before reading bytes, bind a regular single-link input to a no-follow handle plus pre/post lstat-fstat identity and ancestor checks; copy from that same handle into a private mode-0600 snapshot; MinerU and SFTP consume only the snapshot, while the original path is reopened solely for provenance revalidation"
+    remote_guardian: "launch an owner-only guardian before upload; bind guardian and driver identity to a random token plus Linux boot_id, PID, /proc start-time, and SID; publish handoff by temp+fsync+atomic rename; revalidate the full identity before every observation or signal; enforce a two-hour pre-handoff TTL and a PDF-count-derived post-handoff hard lease capped at 24 hours"
+    remote_timeouts: "activation has a five-minute watchdog; each MinerU process uses timeout --kill-after with 1200 seconds plus a 30-second kill grace; completed result retention is two hours"
+    recovery_validation: "before resolving pending, require the exact pending/completion schemas, backend, batch id, typed PDF provenance, safe source/PDF names, duplicate-free portable Markdown list equal to the regular single-link tree, unchanged project-relative PDF when present, and one non-conflicting valid resolution state; publish resolution from the verified in-memory pending record without rereading its path"
+    path_safety:
+      portable_basename: "nonempty and not . or ..; no slash, backslash, absolute/drive prefix, control byte, trailing dot/space, <>:\"|?*, or Windows CON/PRN/AUX/NUL/CONIN$/CONOUT$/COM1-9/COM¹²³/LPT1-9/LPT¹²³ device basename; reject NFC+casefold collisions"
+      relative_posix: "nonempty non-absolute forward-slash path whose every component is a portable basename and never . or ..; no backslash, drive prefix, duplicate, or NFC+casefold collision"
+    consume: >-
+      Before reading _paper-wiki-ocr-complete.json or any OCR Markdown, require the
+      source to be a safe-basename direct child of raw/<topic>/mineru; lstat the
+      source, manifest, every listed Markdown file, marker, and all ancestors;
+      reject symlinks, junctions, reparse points, special files, unexpected file
+      hard links, followed links, and realpath escape. Require completion schema
+      paper-wiki/ocr-completion/v2, state requires-batch-commit, a 32-lowercase-hex
+      batch_id, source equal to the containing directory basename, a safe PDF
+      basename, and content_fingerprint schema paper-wiki/ocr-content/v1. Its files
+      list must cover every regular single-link source file except the completion
+      manifest, with a safe path, size, and lowercase SHA-256; markdown must equal
+      the .md subset. Recompute tree_sha256 from UTF-8-byte-sorted records using
+      "paper-wiki/ocr-content/v1\\n" followed by
+      path_utf8+NUL+decimal_size+NUL+sha256+LF per file. Accept
+      batch_commit_marker only as a basename matching
+      _paper-wiki-ocr-batch-[0-9a-f]{32}.committed.json; require its contained
+      regular non-link/non-reparse sibling to have schema paper-wiki/ocr-batch/v2,
+      resolution committed, the same batch_id, and exactly one record matching
+      source/source_pdf/source_pdf_size/source_pdf_sha256/source_pdf_project_path
+      plus the complete content_fingerprint.
+      A non-null source_pdf_project_path must resolve inside raw/<topic> but outside
+      mineru to a regular non-link PDF whose current basename, size, and SHA-256
+      match; a null legacy/external-staging path is allowed but reported as not
+      revalidated. Immediately before a body read, copy every declared file through
+      a no-follow handle into a new owner-only private snapshot while binding the
+      pre/post lstat, fstat, and ancestor identity; hash during the copy, verify the
+      exact set, every size/SHA-256 and tree_sha256, and read only the snapshot.
+      Legacy v1 or missing-fingerprint records require re-OCR or explicitly reviewed
+      resealing. Any unresolved pending record or aborted marker blocks compilation.
     nonrecursive: "only direct *.pdf children are processed; stage nested PDFs flat"
     exit_codes:
       0: "ok"
@@ -258,7 +293,7 @@ decision_rules:
 state_machine:
   compile:
     s0_load: "read WIKI.md, then research.md, then list wiki/"
-    s1_diff: "raw vs compiled => validate OCR completion manifest and sibling committed marker, then classify new/skip/blocked; course also applies scope filter; report before writing"
+    s1_diff: "raw vs compiled => path-preflight OCR source/manifest/Markdown/ancestors without following links, validate completion and committed records, rehash a project-relative source PDF when available, then and only then read eligible body text and classify new/skip/blocked; course also applies scope filter; report before writing"
     s2_per_source: "read whole source -> verify identity -> write note using WIKI.md schema -> cite -> link"
     s3_barrier: "finish per-source notes before synthesis"
     s4_synthesis: "theme count >=3 => concept/topic organized by method"

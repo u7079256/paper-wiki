@@ -58,23 +58,24 @@ new skill inventory is loaded.
 
 > [!NOTE]
 > Run `codex plugin ...` in a **terminal** such as PowerShell or Bash. Enter
-> `/plugins` and `$paper-wiki` in the **Codex task composer**. `$paper-wiki` is
-> a skill invocation, not an environment variable or shell command.
+> `/plugins` and `$paper-wiki:paper-wiki` in the **Codex task composer**. The
+> first half is the plugin namespace and the second is the skill name; it is not
+> an environment variable or shell command.
 
 #### Invoke it in Codex
 
-After a global install, use `$paper-wiki <action>` explicitly:
+After a global install, use `$paper-wiki:paper-wiki <action>` explicitly:
 
 ```text
-$paper-wiki init
-$paper-wiki compile
-$paper-wiki critique wiki/papers/example.md
-$paper-wiki teach "Which method families are covered by this wiki?"
+$paper-wiki:paper-wiki init
+$paper-wiki:paper-wiki compile
+$paper-wiki:paper-wiki critique wiki/papers/example.md
+$paper-wiki:paper-wiki teach "Which method families are covered by this wiki?"
 ```
 
 Natural language also works, for example: “Use paper-wiki to compile the new
-sources in the current wiki.” Explicit `$paper-wiki` calls are useful on first
-use or when you want to pin the action.
+sources in the current wiki.” Explicit `$paper-wiki:paper-wiki` calls are useful
+on first use or when you want to pin the action.
 
 A bootstrapped project contains
 `.agents/skills/paper-wiki-project/SKILL.md`, so it remains usable without a
@@ -98,6 +99,27 @@ codex plugin list --marketplace paper-wiki --available --json
 After refreshing the marketplace, run `plugin add` again and start a new task to
 load the updated skill.
 
+#### SessionStart update check and hook trust
+
+The plugin bundles a `SessionStart` update-check hook. When enabled, each new
+session starts a lightweight background worker. After a successful check for one
+installed version, later sessions reuse that version's cache for 24 hours.
+Different installed versions use separate
+`~/.cache/paper-wiki/update-check-<version-hash>.json` files, so Claude Code and
+Codex installations at different versions cannot suppress each other's checks.
+Sessions started concurrently for the first time may each check, and a network or
+HTTP failure does not create a successful cache, so a later session may retry. The
+hook stores only the update-available flag, installed version, latest version,
+and check time. It only prints a reminder; it never downloads, installs, or
+updates anything automatically, and the reminder uses the detected runtime's
+update command.
+
+Codex automatically discovers `hooks/hooks.json`, but installing or enabling a
+plugin **does not trust its hooks automatically**. Review the hook and explicitly
+allow it at the Codex trust prompt before first use. Declining or skipping it does
+not affect `$paper-wiki:paper-wiki`; it only disables the background check and
+update reminder.
+
 #### How the Codex package is distributed
 
 Paper Wiki currently uses a **GitHub marketplace**; it is not yet an official
@@ -107,7 +129,7 @@ entry in OpenAI's curated Plugins Directory:
 GitHub repository
   → .agents/plugins/marketplace.json   # lets Codex discover paper-wiki
   → .codex-plugin/plugin.json          # declares metadata and skills/
-  → skills/paper-wiki/SKILL.md         # provides global $paper-wiki
+  → skills/paper-wiki/SKILL.md         # provides global $paper-wiki:paper-wiki
   → $CODEX_HOME/plugins/cache/...      # Codex-managed installed copy
 ```
 
@@ -149,17 +171,17 @@ Bootstrap creates a dual-runtime project:
 ### Invocation map
 
 Claude Code exposes `/wiki-*` slash commands. Codex does not mirror those slash
-commands; it loads skills, so use `$paper-wiki`, `$paper-wiki-project`, or name
-the action in natural language.
+commands; it loads skills, so use `$paper-wiki:paper-wiki`,
+`$paper-wiki-project`, or name the action in natural language.
 
 | Action | Claude Code project | Codex project | Global plugin |
 |---|---|---|---|
-| Initialize | `/wiki-init` | `$paper-wiki-project wiki-init` | Claude `/paper-wiki:wiki-init`; Codex `$paper-wiki init` |
-| Compile | `/wiki-compile` | `$paper-wiki-project wiki-compile` | Claude `/paper-wiki:wiki-compile`; Codex `$paper-wiki compile` |
-| Search | `/wiki-search-latest <topic>` | `$paper-wiki-project wiki-search-latest <topic>` | Claude `/paper-wiki:wiki-search-latest`; Codex `$paper-wiki search` |
-| Critique | `/wiki-critique <file>` | `$paper-wiki-project wiki-critique <file>` | Claude `/paper-wiki:wiki-critique`; Codex `$paper-wiki critique` |
-| Ideate | `/wiki-ideate <gap>` | `$paper-wiki-project wiki-ideate <gap>` | Claude `/paper-wiki:wiki-ideate`; Codex `$paper-wiki ideate` |
-| Query/teach | `/wiki-teach <question>` | `$paper-wiki-project wiki-teach <question>` | Claude `/paper-wiki:wiki-teach`; Codex `$paper-wiki teach` |
+| Initialize | `/wiki-init` | `$paper-wiki-project wiki-init` | Claude `/paper-wiki:wiki-init`; Codex `$paper-wiki:paper-wiki init` |
+| Compile | `/wiki-compile` | `$paper-wiki-project wiki-compile` | Claude `/paper-wiki:wiki-compile`; Codex `$paper-wiki:paper-wiki compile` |
+| Search | `/wiki-search-latest <topic>` | `$paper-wiki-project wiki-search-latest <topic>` | Claude `/paper-wiki:wiki-search-latest`; Codex `$paper-wiki:paper-wiki search` |
+| Critique | `/wiki-critique <file>` | `$paper-wiki-project wiki-critique <file>` | Claude `/paper-wiki:wiki-critique`; Codex `$paper-wiki:paper-wiki critique` |
+| Ideate | `/wiki-ideate <gap>` | `$paper-wiki-project wiki-ideate <gap>` | Claude `/paper-wiki:wiki-ideate`; Codex `$paper-wiki:paper-wiki ideate` |
+| Query/teach | `/wiki-teach <question>` | `$paper-wiki-project wiki-teach <question>` | Claude `/paper-wiki:wiki-teach`; Codex `$paper-wiki:paper-wiki teach` |
 
 Codex also accepts natural language, for example: “Run the paper-wiki
 `wiki-compile` action on the new sources.” `wiki-teach` is built into paper-wiki;

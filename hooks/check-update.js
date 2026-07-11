@@ -1,48 +1,90 @@
 #!/usr/bin/env node
 "use strict";
 
-try {
-  const fs = require("fs");
-  const path = require("path");
-  const os = require("os");
-  const { spawn } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+const { spawn } = require("child_process");
+const {
+  cachePathForVersion,
+  isFreshCacheForVersion,
+  readInstalledVersion,
+} = require("./check-update-worker.js");
 
-  const pluginRoot =
-    process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, "..");
+function detectRuntime(env) {
+  // Codex exposes PLUGIN_ROOT / PLUGIN_DATA and also sets the CLAUDE_PLUGIN_*
+  // compatibility aliases, so the Codex-specific variables must win.
+  if (env.PLUGIN_ROOT || env.PLUGIN_DATA) return "codex";
+  if (env.CLAUDE_PLUGIN_ROOT || env.CLAUDE_PLUGIN_DATA) return "claude";
+  return "unknown";
+}
 
-  // Spawn the background worker (detached, fire-and-forget)
-  const workerPath = path.join(__dirname, "check-update-worker.js");
-  const child = spawn(process.execPath, [workerPath], {
-    detached: true,
-    stdio: "ignore",
-    windowsHide: true,
-    env: Object.assign({}, process.env, { CLAUDE_PLUGIN_ROOT: pluginRoot }),
-  });
-  child.unref();
+function updateInstruction(runtime) {
+  if (runtime === "codex") {
+    return (
+      "run in a terminal: codex plugin marketplace upgrade paper-wiki; " +
+      "then codex plugin add paper-wiki@paper-wiki; then start a new task"
+    );
+  }
+  if (runtime === "claude") {
+    return "run in Claude Code: /plugin marketplace update paper-wiki";
+  }
+  return (
+    "Claude Code: /plugin marketplace update paper-wiki; " +
+    "Codex terminal: codex plugin marketplace upgrade paper-wiki, then " +
+    "codex plugin add paper-wiki@paper-wiki and start a new task"
+  );
+}
 
-  // Read cache and print reminder if an update is available
-  const cacheDir = path.join(os.homedir(), ".cache", "paper-wiki");
-  const cachePath = path.join(cacheDir, "update-check.json");
+function shouldDisplayUpdate(cache, installed, now = Date.now()) {
+  return (
+    isFreshCacheForVersion(cache, installed, now) &&
+    cache.update_available === true
+  );
+}
 
-  if (fs.existsSync(cachePath)) {
-    const raw = fs.readFileSync(cachePath, "utf8");
-    const cache = JSON.parse(raw);
+function main() {
+  try {
+    const pluginRoot =
+      process.env.PLUGIN_ROOT ||
+      process.env.CLAUDE_PLUGIN_ROOT ||
+      path.resolve(__dirname, "..");
+    const installed = readInstalledVersion(pluginRoot);
 
-    if (cache && cache.checked_at) {
-      const age = Date.now() - new Date(cache.checked_at).getTime();
-      const ONE_DAY = 24 * 60 * 60 * 1000;
+    // Spawn the background worker (detached, fire-and-forget)
+    const workerPath = path.join(__dirname, "check-update-worker.js");
+    const child = spawn(process.execPath, [workerPath], {
+      detached: true,
+      stdio: "ignore",
+      windowsHide: true,
+      env: Object.assign({}, process.env, { CLAUDE_PLUGIN_ROOT: pluginRoot }),
+    });
+    child.unref();
 
-      if (age < ONE_DAY && cache.update_available === true) {
+    // Only this exact installed version's fresh cache may drive a reminder.
+    if (!installed) return;
+    const cachePath = cachePathForVersion(installed);
+
+    if (fs.existsSync(cachePath)) {
+      const raw = fs.readFileSync(cachePath, "utf8");
+      const cache = JSON.parse(raw);
+
+      if (shouldDisplayUpdate(cache, installed)) {
         process.stderr.write(
           "\x1b[33m⬆ paper-wiki update available (installed: " +
             cache.installed +
             ", latest: " +
             cache.latest +
-            ") — run: /plugin marketplace update paper-wiki\x1b[0m\n"
+            ") — " +
+            updateInstruction(detectRuntime(process.env)) +
+            "\x1b[0m\n"
         );
       }
     }
+  } catch (_) {
+    // Never crash, never block
   }
-} catch (_) {
-  // Never crash, never block
 }
+
+if (require.main === module) main();
+
+module.exports = { detectRuntime, shouldDisplayUpdate, updateInstruction };

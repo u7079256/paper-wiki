@@ -604,8 +604,24 @@ if ($Update) {
                        [System.IO.File]::Exists((Join-Path $NewPath '.claude\commands\wiki-compile.md'))
   $hasLegacySignature = $hasLegacyCommands -and $claudeVariant -and
                         ($oldClaudeText -match '(?i)LLM Wiki|paper-wiki')
+  $hasThinClaudeAdapter = $oldClaudeText -and
+                          ($oldClaudeText -match '(?im)^# Claude Code project adapter\s*$') -and
+                          ($oldClaudeText -match '(?i)WIKI\.md.*only canonical source')
+  $hasCodexAssets = [System.IO.File]::Exists((Join-Path $NewPath 'AGENTS.md')) -or
+                    [System.IO.Directory]::Exists((Join-Path $NewPath '.agents'))
+  $isConfirmedLegacy = $hasLegacySignature -and -not $hasManifestSignature -and
+                       -not [System.IO.File]::Exists($wikiPath) -and
+                       -not $hasThinClaudeAdapter -and -not $hasCodexAssets
   if (-not ($hasManifestSignature -or $hasWikiSignature -or $hasLegacySignature)) {
     Fail 'This does not look like a paper-wiki project. No paper-wiki manifest, marked WIKI.md, or legacy command/template signature was found.'
+  }
+  if (-not [System.IO.File]::Exists($wikiPath)) {
+    if ($hasManifestSignature) {
+      Fail 'Managed paper-wiki project is missing canonical WIKI.md. Restore it from version control or backup; update will not reconstruct it from a client adapter.' 3
+    }
+    if (-not $isConfirmedLegacy) {
+      Fail 'WIKI.md is missing, and this is not a confirmed Claude-only legacy project with a full CLAUDE.md rulebook. Refusing migration.' 3
+    }
   }
 
   $variantEvidence = @()
@@ -682,7 +698,7 @@ if ($Update) {
   if (-not $scaffoldVersion) { Fail 'VERSION is empty.' }
   PreflightSources $true
 
-  $migrateWiki = -not [System.IO.File]::Exists($wikiPath) -and [System.IO.File]::Exists($claudePath)
+  $migrateWiki = $isConfirmedLegacy
   InitializeSecureUpdateApi
   $projectParent = [System.IO.Path]::GetDirectoryName($NewPath)
   if (-not $projectParent) { Fail "Cannot determine project parent for secure update: $NewPath" 2 }

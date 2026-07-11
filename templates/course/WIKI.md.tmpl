@@ -96,7 +96,14 @@ Claude Code 可按命令文件中的 agent 名调用项目 agent；Codex 忽略 
 
 ### 1. 扫描 raw/
 
-列出 `raw/{{TOPIC}}/mineru/` 下的 OCR Markdown，以及明确纳入处理的 lab `.ipynb`，再与 `wiki/lectures/`、`wiki/practice/` 对比。OCR source 必须先读取 `_paper-wiki-ocr-complete.json`：`batch_commit_marker` 只能是匹配 `_paper-wiki-ocr-batch-[0-9a-f]{32}.committed.json` 的 basename；同级 marker 必须是 regular、non-link、non-reparse JSON 文件，并满足 `schema: paper-wiki/ocr-batch/v1`、`resolution: committed`、相同 `batch_id`，且恰有一条 source record 与 manifest 的 source 名、PDF basename、size、SHA-256 全部一致，才算可编译。manifest 无效，marker malformed、linked、mismatched、缺失，仍是 pending 或已 aborted 的 source 一律标记 blocked 并报告，不能读取其正文或写入 wiki。
+列出 `raw/{{TOPIC}}/mineru/` 下的 OCR source，以及明确纳入处理的 lab `.ipynb`，再与 `wiki/lectures/`、`wiki/practice/` 对比。OCR source 必须先做控制面验证，**通过前不能读取 OCR 正文**：
+
+1. source 必须是 `mineru/` 的 safe-basename 直接子目录。先用 `lstat` 检查 source、`_paper-wiki-ocr-complete.json`、manifest 列出的每个 Markdown，以及从 wiki root 开始的每级 ancestor；目录必须是真实目录，文件必须是 regular file。拒绝 symlink、junction、reparse point、special file、link count 异常的 hard link；禁止 follow links，所有 realpath 必须留在 source 内（batch marker 留在 `mineru/` 内）。
+2. 路径安全后才能解析 completion manifest。它必须满足 `schema: paper-wiki/ocr-completion/v2`、`state: requires-batch-commit`、32 位小写十六进制 `batch_id`；`source` 必须等于所在目录 basename，`source_pdf` 必须是 safe basename。`content_fingerprint` 必须使用 `paper-wiki/ocr-content/v1`；`files` 覆盖 source 内除 completion manifest 本身以外的全部 regular single-link 文件，每项绑定 safe path、size 和小写 SHA-256。`markdown` 必须精确等于 `files` 的 `.md` 子集。按 path UTF-8 bytes 排序，用 `paper-wiki/ocr-content/v1\n` 加每项 `path_utf8 + NUL + decimal_size + NUL + sha256 + LF` 重算 `tree_sha256`。
+3. `batch_commit_marker` 只能是 `_paper-wiki-ocr-batch-[0-9a-f]{32}.committed.json` 形式的 basename；同级 marker 也必须通过 regular、non-link、non-reparse 与 realpath 检查。要求 `schema: paper-wiki/ocr-batch/v2`、`resolution: committed`、相同 `batch_id`，且恰有一条 record 的 `source`、`source_pdf`、`source_pdf_size`、`source_pdf_sha256`、`source_pdf_project_path` 和完整 `content_fingerprint` 与 manifest 一致。旧 v1 或缺 fingerprint 的记录必须 blocked，提示重新 OCR 或执行经人工审核的 reseal。
+4. `source_pdf_project_path` 非空时，它必须是 `raw/{{TOPIC}}/` 内、`mineru/` 外的 safe project-relative path；对 regular、non-link PDF 重新计算 size 与 SHA-256，任何变化都 blocked。值为 `null` 时保留外部 flat staging 兼容，但必须报告“current PDF hash not revalidated”。
+
+读取任何 OCR 正文前，必须从 no-follow handle 把所有声明文件复制到新的 owner-only 私有 snapshot，边复制边计算 hash，并绑定复制前后的 lstat/fstat 与 ancestor identity；仅当文件集、size/SHA-256 和 tree digest 全部匹配时，才能读这份 snapshot。任一路径或控制字段无效、marker malformed/linked/mismatched/缺失、batch 仍 unresolved pending，或同一 `batch_id` 存在 aborted marker，source 一律标记 blocked；不能先读正文再决定。
 
 编译前必须先用范围文档或 `wiki/exam-scope.md` 判断材料是否在范围内。范围外材料不编译进 `wiki/`，但保留在 `raw/` 归档。
 
@@ -129,7 +136,7 @@ compiled_at: <YYYY-MM-DD>
 ---
 type: topic
 scope: in | partial | out
-related_lectures: [[lecture-a]], [[lecture-b]], [[lecture-c]]
+related_lectures: ["[[lecture-a]]", "[[lecture-b]]", "[[lecture-c]]"]
 ---
 ## 全景
 ## 核心方法族（按方法分类，不按讲分类）
@@ -144,7 +151,7 @@ related_lectures: [[lecture-a]], [[lecture-b]], [[lecture-c]]
 ---
 type: practice
 source: <raw/{{TOPIC}}/lab/Week N questions.pdf (+ sol)>
-topics: [[topic-or-lecture]], ...
+topics: ["[[topic-or-lecture]]"]
 ---
 ## 题目
 ## 解答     <!-- 忠实于官方 solution；没有官方答案时，只整理题目 -->

@@ -26,16 +26,54 @@ List source material under `raw/<topic>/`, including OCR Markdown under
 
 - New source: queue it.
 - Already compiled: skip it unless the user requested `recompile`.
-- OCR-derived source: read its `_paper-wiki-ocr-complete.json`. Treat
-  `batch_commit_marker` only as a basename matching
-  `_paper-wiki-ocr-batch-[0-9a-f]{32}.committed.json`, resolve it as a sibling
-  under `raw/<topic>/mineru/`, and require it to be a regular, non-link,
-  non-reparse JSON file. Parse it and require `schema: paper-wiki/ocr-batch/v1`,
-  `resolution: committed`, the same `batch_id`, and exactly one source record
-  matching the completion manifest's `source`, `source_pdf`,
-  `source_pdf_size`, and `source_pdf_sha256`. Queue the source only after all
-  checks pass. An invalid manifest, malformed/linked/mismatched/missing marker, unresolved `.pending.json`, or
-  `.aborted.json` batch is blocked and must be reported, never compiled.
+- OCR-derived source: validate paths and control metadata **before reading any
+  OCR Markdown**. The source directory must be a direct child with a safe
+  basename under `raw/<topic>/mineru/`; `lstat` it, its manifest, every listed
+  Markdown file, and every ancestor from the wiki root. Each must be a real
+  directory or regular file as appropriate, never a symlink, junction, hard
+  link with an unexpected link count, or other reparse point, and every `realpath`
+  must remain inside the source directory (the marker remains inside
+  `mineru/`). Do not follow links while discovering files.
+  "Safe" uses the OCR scripts' portable-name rules: no empty/dot component,
+  separator, absolute/drive prefix, control character, trailing dot/space,
+  Windows-forbidden punctuation or device basename, and no NFC+casefold collision.
+- Only after those path checks, parse `_paper-wiki-ocr-complete.json`. Require
+  `schema: paper-wiki/ocr-completion/v2`, `state: requires-batch-commit`, a
+  32-lowercase-hex `batch_id`, `source` exactly equal to the containing directory
+  basename, and `source_pdf` to be a safe basename. Require
+  `content_fingerprint.schema: paper-wiki/ocr-content/v1`, a nonempty `files`
+  list covering every regular single-link file under the source except the
+  completion manifest itself, and a `tree_sha256`. Each file record must contain
+  exactly a safe relative POSIX `path`, nonnegative integer `size`, and lowercase
+  SHA-256. Paths must be unique after NFC+casefold. `markdown` must be a nonempty,
+  duplicate-free safe list exactly equal to the `.md` subset of `files`.
+  Recompute the tree digest from UTF-8-byte-sorted file records using the canonical
+  bytes `paper-wiki/ocr-content/v1\n`, then for each record
+  `path_utf8 + NUL + decimal_size + NUL + lowercase_sha256 + LF`.
+- Treat `batch_commit_marker` only as a basename matching
+  `_paper-wiki-ocr-batch-[0-9a-f]{32}.committed.json`. Its named sibling under
+  `raw/<topic>/mineru/` must pass the same regular/non-link/non-reparse/containment
+  checks. Require `schema: paper-wiki/ocr-batch/v2`, `resolution: committed`, the
+  same `batch_id`, and exactly one source record matching all manifest provenance
+  fields: `source`, `source_pdf`, `source_pdf_size`, `source_pdf_sha256`, and
+  `source_pdf_project_path`, plus the complete `content_fingerprint`. If the
+  project path is non-null, it must be a safe project-relative path inside
+  `raw/<topic>/` but outside `mineru/`; re-open that regular non-link PDF, verify
+  its basename, size, and SHA-256 against the manifest, and block on any change.
+  A null path preserves external flat-staging compatibility but must be reported
+  as "current PDF hash not revalidated".
+- Immediately before any OCR body is read, open each declared content file with
+  no-follow semantics, bind its pre-open `lstat`, open-handle `fstat`, ancestor
+  chain, and post-copy identity, and copy it into a new owner-only (`0700` directory,
+  regular private files) snapshot while hashing. From those snapshot bytes require
+  the exact declared file set, every size/SHA-256, and the canonical `tree_sha256`.
+  Read and compile only the verified private snapshot, never the original mutable
+  path. Any legacy v1 manifest/batch or record missing the fingerprint is blocked;
+  report that it needs re-OCR or an explicitly reviewed reseal operation.
+- Queue the source only after every check passes. An unsafe source tree, invalid
+  manifest, malformed/linked/mismatched/missing marker, unresolved pending batch,
+  or any aborted marker for that `batch_id` is blocked and must be reported;
+  never read its OCR body or compile it.
 - Course source: apply `WIKI.md` and `wiki/exam-scope.md`; do not compile material
   that is out of scope.
 - PDF without OCR/HTML/Markdown content: report that it needs OCR or a no-OCR

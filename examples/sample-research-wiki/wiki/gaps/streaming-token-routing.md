@@ -1,6 +1,6 @@
 ---
 type: gap
-seeded_from: [[token-routing]], [[paper-alpha]], [[paper-beta]]
+seeded_from: ["[[token-routing]]", "[[paper-alpha]]", "[[paper-beta]]"]
 novelty_verified: false   # 示例:待 /wiki-ideate 验证
 ---
 

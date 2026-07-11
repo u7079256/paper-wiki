@@ -220,16 +220,22 @@ def open_root(path, expected=None):
     return fd, identity
 
 
-def open_parent(root_fd, relative):
+def open_parent(root_fd, relative, missing_ok=False):
     parts = split_relative(relative)
     fd = os.dup(root_fd)
     try:
         for component in parts[:-1]:
-            next_fd = os.open(
-                component,
-                os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
-                dir_fd=fd,
-            )
+            try:
+                next_fd = os.open(
+                    component,
+                    os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                    dir_fd=fd,
+                )
+            except FileNotFoundError:
+                if missing_ok:
+                    os.close(fd)
+                    return None, parts[-1]
+                raise
             info = os.fstat(next_fd)
             if not stat.S_ISDIR(info.st_mode):
                 os.close(next_fd)
@@ -256,15 +262,15 @@ def require_regular(info, label):
         die(f"Refusing hard-linked managed file (link count {info.st_nlink}): {label}")
 
 
-def state_token(info):
-    if info is None:
-        return "0"
+def state_token(info, digest):
     require_regular(info, "managed target")
-    return f"1:{info.st_dev}:{info.st_ino}:{info.st_size}:{info.st_mtime_ns}"
+    return (
+        f"1:{info.st_dev}:{info.st_ino}:{info.st_size}:{info.st_mtime_ns}:"
+        f"{digest.hex()}"
+    )
 
 
-def require_state(info, expected, label):
-    actual = state_token(info)
+def require_state(actual, expected, label):
     if actual != expected:
         die(f"Managed target changed during update: {label} (expected {expected}, got {actual})")
 
@@ -311,6 +317,23 @@ def hash_fd(fd):
         digest.update(block)
 
 
+def path_state_token(parent_fd, name, label):
+    try:
+        target_fd = os.open(
+            name,
+            os.O_RDONLY | os.O_NOFOLLOW,
+            dir_fd=parent_fd,
+        )
+    except FileNotFoundError:
+        return "0"
+    try:
+        info = os.fstat(target_fd)
+        require_regular(info, label)
+        return state_token(info, hash_fd(target_fd))
+    finally:
+        os.close(target_fd)
+
+
 def verify_same(parent_fd, name, source):
     target_fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=parent_fd)
     source_fd = os.open(source, os.O_RDONLY | os.O_NOFOLLOW)
@@ -336,11 +359,15 @@ root_fd, _ = open_root(root, expected_root)
 try:
     if command == "inspect":
         relative = sys.argv[4]
-        parent_fd, name = open_parent(root_fd, relative)
+        parent_fd, name = open_parent(root_fd, relative, missing_ok=True)
         try:
-            print(state_token(entry_stat(parent_fd, name)))
+            if parent_fd is None:
+                print("0")
+            else:
+                print(path_state_token(parent_fd, name, relative))
         finally:
-            os.close(parent_fd)
+            if parent_fd is not None:
+                os.close(parent_fd)
     elif command == "mkdir":
         relative = sys.argv[4]
         parent_fd, name = open_parent(root_fd, relative)
@@ -363,14 +390,15 @@ try:
         parent_fd, name = open_parent(root_fd, relative)
         temporary = None
         try:
-            before = entry_stat(parent_fd, name)
+            before = path_state_token(parent_fd, name, relative)
             require_state(before, expected, relative)
-            existed = before is not None
+            existed = before != "0"
             if existed:
                 target_fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=parent_fd)
                 try:
                     current = os.fstat(target_fd)
-                    require_state(current, expected, relative)
+                    require_regular(current, relative)
+                    require_state(state_token(current, hash_fd(target_fd)), expected, relative)
                     os.makedirs(os.path.dirname(backup), exist_ok=True)
                     backup_fd = os.open(
                         backup,
@@ -378,16 +406,22 @@ try:
                         stat.S_IMODE(current.st_mode) or 0o600,
                     )
                     try:
+                        os.lseek(target_fd, 0, os.SEEK_SET)
                         copy_fd(target_fd, backup_fd)
                         os.fsync(backup_fd)
                     finally:
                         os.close(backup_fd)
+                    require_state(
+                        state_token(os.fstat(target_fd), hash_fd(target_fd)),
+                        expected,
+                        relative,
+                    )
                 finally:
                     os.close(target_fd)
-            require_state(entry_stat(parent_fd, name), expected, relative)
+            require_state(path_state_token(parent_fd, name, relative), expected, relative)
             if source != "-":
                 temporary = make_parent_temp(parent_fd, source)
-                require_state(entry_stat(parent_fd, name), expected, relative)
+                require_state(path_state_token(parent_fd, name, relative), expected, relative)
                 os.replace(temporary, name, src_dir_fd=parent_fd, dst_dir_fd=parent_fd)
                 temporary = None
             elif existed:
@@ -654,7 +688,39 @@ if $UPDATE; then
      [ -n "$CLAUDE_VARIANT" ] && grep -Eiq 'LLM Wiki|paper-wiki' "$NEW_PATH/CLAUDE.md"; then
     MANAGED=true
   fi
+  HAS_LEGACY_COMMANDS=false
+  if [ -f "$NEW_PATH/.claude/commands/wiki-init.md" ] &&
+     [ -f "$NEW_PATH/.claude/commands/wiki-compile.md" ]; then
+    HAS_LEGACY_COMMANDS=true
+  fi
+  HAS_LEGACY_SIGNATURE=false
+  if $HAS_LEGACY_COMMANDS && [ -n "$CLAUDE_VARIANT" ] &&
+     grep -Eiq 'LLM Wiki|paper-wiki' "$NEW_PATH/CLAUDE.md"; then
+    HAS_LEGACY_SIGNATURE=true
+  fi
+  HAS_THIN_CLAUDE_ADAPTER=false
+  if [ -f "$NEW_PATH/CLAUDE.md" ] &&
+     grep -Eq '^# Claude Code project adapter[[:space:]]*$' "$NEW_PATH/CLAUDE.md" &&
+     grep -Eiq 'WIKI\.md.*only canonical source' "$NEW_PATH/CLAUDE.md"; then
+    HAS_THIN_CLAUDE_ADAPTER=true
+  fi
+  HAS_CODEX_ASSETS=false
+  if [ -f "$NEW_PATH/AGENTS.md" ] || [ -d "$NEW_PATH/.agents" ]; then HAS_CODEX_ASSETS=true; fi
+  CONFIRMED_LEGACY=false
+  if $HAS_LEGACY_SIGNATURE && ! $HAS_THIN_CLAUDE_ADAPTER && ! $HAS_CODEX_ASSETS &&
+     [ ! -f "$NEW_PATH/WIKI.md" ]; then
+    case "$MANIFEST_SPEC" in llm-wiki/*) ;; *) CONFIRMED_LEGACY=true ;; esac
+  fi
   $MANAGED || fail "This does not look like a paper-wiki project. No paper-wiki manifest, marked WIKI.md, or legacy command/template signature was found."
+  if [ ! -f "$NEW_PATH/WIKI.md" ]; then
+    case "$MANIFEST_SPEC" in
+      llm-wiki/*)
+        fail "Managed paper-wiki project is missing canonical WIKI.md. Restore it from version control or backup; update will not reconstruct it from a client adapter." 3
+        ;;
+    esac
+    $CONFIRMED_LEGACY ||
+      fail "WIKI.md is missing, and this is not a confirmed Claude-only legacy project with a full CLAUDE.md rulebook. Refusing migration." 3
+  fi
 
   EVIDENCE_VARIANT=""
   EVIDENCE_SOURCE=""
@@ -725,8 +791,7 @@ if $UPDATE; then
   [ -n "$SCAFFOLD_VERSION" ] || fail "VERSION is empty."
   preflight_sources true
 
-  MIGRATE_WIKI=false
-  if [ ! -f "$NEW_PATH/WIKI.md" ] && [ -f "$NEW_PATH/CLAUDE.md" ]; then MIGRATE_WIKI=true; fi
+  MIGRATE_WIKI=$CONFIRMED_LEGACY
   command -v python3 >/dev/null 2>&1 ||
     fail "Secure update requires Python 3 with dir_fd and O_NOFOLLOW support." 2
   PROJECT_ROOT_ID="$(secure_fs root-id "$NEW_PATH")" ||

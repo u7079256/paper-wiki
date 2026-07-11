@@ -109,10 +109,15 @@ The action reads `WIKI.md`, diffs `raw/` against the compiled layer, reports wha
 is new, then reads every eligible new source in full. OCR-derived sources are
 eligible only when `_paper-wiki-ocr-complete.json` names a safe sibling
 `.committed.json` batch marker that is a regular non-link/non-reparse JSON record
-with schema `paper-wiki/ocr-batch/v1` and resolution `committed`. Its batch id and
-exactly one source record must match the manifest's source name, PDF basename,
-size, and SHA-256; pending, aborted, invalid,
-linked, mismatched, or markerless OCR output is reported as blocked. The action writes `wiki/papers/` notes using
+with schema `paper-wiki/ocr-batch/v2` and resolution `committed`; the completion
+manifest must use `paper-wiki/ocr-completion/v2`. Its batch id and exactly one
+source record must match the manifest's source name, PDF provenance, and complete
+`paper-wiki/ocr-content/v1` fingerprint. Before reading body text, the action copies
+every declared regular single-link file through an identity-bound no-follow handle
+into an owner-only snapshot, verifies the exact file set, each size/SHA-256, and
+the canonical `tree_sha256`, then reads only that snapshot. Legacy v1,
+pending, aborted, invalid, linked, changed, mismatched, or markerless OCR output is
+reported as blocked. The action writes `wiki/papers/` notes using
 the canonical schema, cites source locators, and adds `[[links]]`. Once at least
 three notes share a theme, it synthesizes a method-organized concept. Recurring
 gaps are written with `novelty_verified: false`.

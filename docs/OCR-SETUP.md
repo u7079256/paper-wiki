@@ -27,12 +27,40 @@ batch or moves a partial batch back into `.paper-wiki/ocr-staging/recovery-*` an
 appends an aborted marker. The pending journal is retained as append-only audit
 history after either resolution.
 
-Before GPU work, every input must be a regular file that starts with `%PDF-` and
-ends with a trailing `%%EOF` (allowing only trailing space, tab, CR, LF, or
-form-feed bytes). The scripts
-record its byte size and SHA-256, then recheck both before publication. They also
-reject any symlink, junction, or Windows reparse point from the project root through
-`raw/<topic>/mineru/`.
+New output uses completion schema `paper-wiki/ocr-completion/v2` and batch schema
+`paper-wiki/ocr-batch/v2`. Both bind the same
+`paper-wiki/ocr-content/v1` fingerprint: every regular single-link source file
+except the completion manifest itself is listed by portable relative path, byte
+size, and lowercase SHA-256, and the canonical list is bound by `tree_sha256`.
+Legacy v1 output has no content binding. Recovery safely recognizes and skips an
+already-resolved, matching regular pending+committed/aborted v1 audit pair so it
+does not block unrelated new OCR, but an unresolved or malformed v1 journal fails
+closed. Compilation still blocks every v1 source; rerun OCR or use a separately
+reviewed reseal procedure before compiling it.
+
+Before GPU work, every input must be a regular, single-link file that starts with
+`%PDF-` and ends with a trailing `%%EOF` (allowing only trailing space, tab, CR,
+LF, or form-feed bytes). Before reading its first byte, the scripts bind a no-follow
+file handle to the pre/post `lstat` identity and verify every input-directory
+ancestor. From that same handle they create a mode-`0600` private staging snapshot;
+MinerU and SFTP consume only that snapshot, never the mutable original path. The
+scripts record its byte size and SHA-256, then re-open the original only for a
+provenance recheck before publication. They reject hard links, symlinks, junctions,
+Windows reparse points, or identity changes at every boundary. For a PDF already
+under `raw/<topic>/` but outside `mineru/`, the completion
+manifest and batch record also store its safe project-relative path as
+`source_pdf_project_path`; `wiki-compile` reopens that PDF and verifies its current
+basename, size, and SHA-256 before reading OCR text. A PDF supplied from an external
+flat staging directory records this field as `null` for backward-compatible staging;
+compile reports that its current PDF hash could not be revalidated.
+
+Remote downloads never reopen an inspected path with `get(path)`. Each directory
+is `lstat`-bound before and after listing; each file is opened as an SFTP handle,
+matched by pre/post `lstat` and handle `fstat`, copied to a mode-`0600` local temp
+file, checked again, then atomically published inside staging. Staging cleanup also
+binds the parent and run-directory identities; POSIX cleanup uses no-follow
+directory handles and relative deletion, while an identity mismatch deliberately
+retains data instead of risking an out-of-tree delete.
 
 ## 2. Which path?
 ```
@@ -116,9 +144,18 @@ write the password to the repo or a client memory file.
   [`templates/memory/remote-ocr-gpu-server.md.tmpl`](https://github.com/u7079256/paper-wiki/blob/main/templates/memory/remote-ocr-gpu-server.md.tmpl)
   is for non-secret host/environment notes only; never put the password in it.
 - Every run gets a random `mktemp` root matching `/tmp/mineru_<ns>_*`, owned by the
-  SSH user and mode `0700`. The remote driver has an EXIT/signal cleanup trap; the
-  client also acknowledges cleanup in `finally`, and an abandoned successful driver
-  self-cleans after two hours. `MINERU_NS` accepts only lowercase ASCII letters,
+  SSH user and mode `0700`. Before the first PDF upload, the client starts an
+  owner-only guardian in a separate session. If upload is abandoned and cleanup
+  cannot reconnect, the guardian removes the workspace after a two-hour WAITING
+  TTL. Driver and guardian identities bind a random run token to Linux `boot_id`,
+  PID, `/proc` start time, and SID. The handoff is written through a private temp
+  file, `fsync`, and atomic rename; every observation and signal revalidates the
+  complete identity, so a stale/reused PID is never signalled. After handoff, a
+  PDF-count-derived hard lease (capped at 24 hours) still applies. Activation is
+  limited to five minutes; each MinerU process uses a 1200-second timeout plus a
+  30-second forced-kill grace. The driver has EXIT/signal cleanup, the client
+  acknowledges cleanup in `finally`, and completed results retain a two-hour TTL.
+  `MINERU_NS` accepts only lowercase ASCII letters,
   digits, and underscores; anything else exits **2** before SSH. Projects still
   share the GPU, so **don't run two OCRs at once**.
 - Remote processing is committed only when the driver reports `DONE` and every
@@ -126,6 +163,10 @@ write the password to the repo or a client memory file.
   timeout, download error, symlink, special-file entry, Windows reserved name,
   alternate-data-stream name, or Unicode/case normalization collision exits **5**
   without a committed batch marker.
+- Timeout cleanup is session-wide. Local POSIX cleanup proves the dedicated PGID
+  has no live members; the remote guardian and reconnect cleanup retain the
+  authenticated SID and still TERM/KILL remaining children if the driver leader
+  exits first. PID/starttime, boot ID, token, and SID mismatches are never signaled.
 
 ## 6. Out-of-box example (start to finish)
 ```powershell
@@ -155,11 +196,21 @@ python D:\ocr-demo\scripts\mineru_remote_ocr.py D:\ocr-demo\raw\demo
 An existing `raw/<topic>/mineru/<name>/` is an append-only conflict and also exits
 **2**. Keep the existing source untouched; process only a new PDF basename. A hard
 machine shutdown can leave `.paper-wiki/ocr-staging/` data or a
-`_paper-wiki-ocr-batch-*.pending.json` marker. Do not compile a source whose
-  manifest names an invalid or missing committed marker. The marker must be a
-  regular, non-link JSON file whose schema, committed resolution, batch id, and
-  source PDF size/SHA-256 agree with the source manifest. Rerun the same script: it finalizes a
-fully moved batch, or quarantines a partial batch in
+`_paper-wiki-ocr-batch-*.pending.json` marker. Before it reads a completion manifest
+or OCR Markdown, `wiki-compile` rejects a source, ancestor, manifest, listed
+Markdown, or marker that is linked, reparsed, non-regular, hard-linked, or resolves
+outside its allowed root. It then requires v2 completion/batch records with the
+same content fingerprint. Immediately before any OCR body read, it copies every
+declared file through an identity-bound no-follow handle into a new owner-only
+snapshot, hashes while copying, and accepts only the exact file set, per-file
+size/SHA-256, and canonical tree digest; it reads only that snapshot. A
+project-relative PDF is rehashed as described above. Rerun the same script after
+an interrupted publish: it finalizes a fully moved batch only after revalidating
+the pending schema, backend, every typed provenance field, content fingerprint,
+current project PDF, and any existing resolution marker. Resolution is published
+from the verified in-memory record and the source fingerprint is recomputed at the
+commit boundary. Invalid or conflicting committed/aborted markers fail closed. A partial batch
+is quarantined in
 `.paper-wiki/ocr-staging/recovery-*` and exits **5** so you can inspect it before
 retrying.
 

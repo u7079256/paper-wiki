@@ -59,14 +59,37 @@ described in the parent skill before using them.
 1. Read `WIKI.md`, then `research.md`, then inventory the compiled layer.
 2. Diff sources under `raw/<topic>/` against the note mapping in `WIKI.md`.
    Apply course scope rules and report new, skipped, blocked, and recompile
-   candidates before writing. For every OCR-derived source, validate
-   `_paper-wiki-ocr-complete.json`; its `batch_commit_marker` must be a basename
-   matching `_paper-wiki-ocr-batch-[0-9a-f]{32}.committed.json` and the named
-   sibling under `raw/<topic>/mineru/` must be a regular, non-link/non-reparse
-   JSON file. Require schema `paper-wiki/ocr-batch/v1`, resolution `committed`,
-   the same `batch_id`, and exactly one source record matching the manifest's
-   source name, PDF basename, size, and SHA-256. Otherwise classify the
-   source as blocked; never consume pending, aborted, or markerless OCR output.
+   candidates before writing. For every OCR-derived source, validate its paths
+   and control metadata before reading any OCR body. The source must be a safe
+   direct-child directory of `raw/<topic>/mineru/`. `lstat` the directory,
+   `_paper-wiki-ocr-complete.json`, every listed Markdown file, and all ancestors;
+   reject symlinks, junctions, reparse points, special files, unexpected hard
+   links, or any realpath outside the source (the marker must stay inside
+   `mineru/`). Discover without following links. Require completion schema
+   `paper-wiki/ocr-completion/v2`, state `requires-batch-commit`, a matching
+   32-lowercase-hex batch id, `source` equal to the directory basename, a safe
+   PDF basename, and `content_fingerprint` with schema
+   `paper-wiki/ocr-content/v1`. Its `files` must cover every regular single-link
+   source file except the completion manifest, with safe portable path, size,
+   and lowercase SHA-256; `markdown` must exactly equal the `.md` subset. Verify
+   `tree_sha256` from UTF-8-byte-sorted records using
+   `paper-wiki/ocr-content/v1\n` followed by
+   `path_utf8 + NUL + decimal_size + NUL + sha256 + LF` per file. Its commit
+   marker must be a safe
+   basename matching `_paper-wiki-ocr-batch-[0-9a-f]{32}.committed.json`; require
+   batch schema `paper-wiki/ocr-batch/v2`, resolution `committed`, the same id,
+   and exactly one record matching source, PDF basename, size, SHA-256, and the
+   optional `source_pdf_project_path`, plus the complete content fingerprint.
+   When that project-relative path is present,
+   require a regular non-link PDF inside `raw/<topic>/` but outside `mineru/` and
+   recompute its size/SHA-256; when null, report that the current PDF hash could
+   not be revalidated. Immediately before reading body text, copy every declared
+   file through an identity-bound no-follow handle into a new owner-only private
+   snapshot while hashing; recheck the exact file set, per-file size/SHA-256 and
+   tree digest, and read only that snapshot. Legacy v1 or missing-fingerprint
+   records fail closed and require re-OCR or explicitly reviewed resealing. Any
+   path/control mismatch, unresolved pending record, or aborted marker for the
+   batch blocks the source before its body is read.
 3. If a source needs OCR, use the plugin's GPU OCR scripts. A busy or missing
    GPU is a clean stop, not permission for CPU fallback.
 4. Assign at most one disjoint writer per source. Each worker gets an explicit

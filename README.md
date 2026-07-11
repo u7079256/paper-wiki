@@ -56,22 +56,22 @@ codex plugin list
 
 > [!NOTE]
 > `codex plugin ...` 在 PowerShell、Bash 等**终端**里运行；`/plugins` 和
-> `$paper-wiki` 则输入到 **Codex task 的对话框**。`$paper-wiki` 不是环境变量，
-> 也不是 shell 命令。
+> `$paper-wiki:paper-wiki` 则输入到 **Codex task 的对话框**。前半段是 plugin
+> namespace，后半段是 skill 名；它不是环境变量，也不是 shell 命令。
 
 #### 在 Codex 中调用
 
-全局 plugin 安装后，显式入口是 `$paper-wiki <action>`：
+全局 plugin 安装后，显式入口是 `$paper-wiki:paper-wiki <action>`：
 
 ```text
-$paper-wiki init
-$paper-wiki compile
-$paper-wiki critique wiki/papers/example.md
-$paper-wiki teach "这个 wiki 中的方法分成哪几类？"
+$paper-wiki:paper-wiki init
+$paper-wiki:paper-wiki compile
+$paper-wiki:paper-wiki critique wiki/papers/example.md
+$paper-wiki:paper-wiki teach "这个 wiki 中的方法分成哪几类？"
 ```
 
 也可以直接用自然语言，例如：“用 paper-wiki 编译当前 wiki 的新材料”。显式写
-`$paper-wiki` 更适合第一次使用或需要固定 action 的场景。
+`$paper-wiki:paper-wiki` 更适合第一次使用或需要固定 action 的场景。
 
 bootstrap 生成的项目会自带
 `.agents/skills/paper-wiki-project/SKILL.md`，因此即使没有安装全局 plugin，进入
@@ -94,6 +94,21 @@ codex plugin list --marketplace paper-wiki --available --json
 
 刷新 marketplace 后重新执行 `plugin add`，再新开 task 使用新版 skill。
 
+#### SessionStart 更新检查与 hook 信任
+
+plugin 内置一个 `SessionStart` 更新检查 hook。启用后，每次新会话会启动一个轻量
+后台 worker。某个已安装版本成功检查后，后续会话会在 24 小时内复用它自己的缓存；
+不同安装版本使用独立的
+`~/.cache/paper-wiki/update-check-<version-hash>.json`，不会让 Claude Code 与 Codex
+之间版本串线。首次并发启动的会话可能各自发起检查，网络或 HTTP 失败也不会写入
+成功缓存，因此后续会话可能重试。hook 只保存是否有更新、已安装版本、最新版本和检查
+时间，只负责提醒，不会自动下载、安装或更新任何内容；提醒中会显示对应 runtime 的
+更新命令。
+
+Codex 会自动发现 `hooks/hooks.json`，但安装或启用 plugin **不等于信任它的 hook**。
+首次运行前请审查 hook，并在 Codex 的 trust 提示中明确允许；拒绝或跳过不会影响
+`$paper-wiki:paper-wiki`，只是不会运行后台检查或显示更新提醒。
+
 #### Codex 端如何分发
 
 目前采用 **GitHub marketplace 分发**，还不是 OpenAI curated Plugins Directory
@@ -103,7 +118,7 @@ codex plugin list --marketplace paper-wiki --available --json
 GitHub 仓库
   → .agents/plugins/marketplace.json   # 让 Codex 发现 paper-wiki
   → .codex-plugin/plugin.json          # 声明插件元数据和 skills/
-  → skills/paper-wiki/SKILL.md         # 提供全局 $paper-wiki
+  → skills/paper-wiki/SKILL.md         # 提供全局 $paper-wiki:paper-wiki
   → $CODEX_HOME/plugins/cache/...      # Codex 管理的本地安装副本
 ```
 
@@ -141,17 +156,17 @@ bootstrap 会生成一份双端自包含项目：
 ### 调用映射
 
 Claude Code 的 `/wiki-*` 是 slash commands；它们不会在 Codex 中原样变成
-slash commands。Codex 加载的是 skill，所以使用 `$paper-wiki`、
+slash commands。Codex 加载的是 skill，所以使用 `$paper-wiki:paper-wiki`、
 `$paper-wiki-project` 或自然语言点名 action。
 
 | Action | Claude Code 项目内 | Codex 项目内 | 全局 plugin |
 |---|---|---|---|
-| 初始化 | `/wiki-init` | `$paper-wiki-project wiki-init` | Claude `/paper-wiki:wiki-init`；Codex `$paper-wiki init` |
-| 编译 | `/wiki-compile` | `$paper-wiki-project wiki-compile` | Claude `/paper-wiki:wiki-compile`；Codex `$paper-wiki compile` |
-| 搜论文 | `/wiki-search-latest <主题>` | `$paper-wiki-project wiki-search-latest <主题>` | Claude `/paper-wiki:wiki-search-latest`；Codex `$paper-wiki search` |
-| 审查 | `/wiki-critique <文件>` | `$paper-wiki-project wiki-critique <文件>` | Claude `/paper-wiki:wiki-critique`；Codex `$paper-wiki critique` |
-| 构思 | `/wiki-ideate <gap>` | `$paper-wiki-project wiki-ideate <gap>` | Claude `/paper-wiki:wiki-ideate`；Codex `$paper-wiki ideate` |
-| 查询/教学 | `/wiki-teach <问题>` | `$paper-wiki-project wiki-teach <问题>` | Claude `/paper-wiki:wiki-teach`；Codex `$paper-wiki teach` |
+| 初始化 | `/wiki-init` | `$paper-wiki-project wiki-init` | Claude `/paper-wiki:wiki-init`；Codex `$paper-wiki:paper-wiki init` |
+| 编译 | `/wiki-compile` | `$paper-wiki-project wiki-compile` | Claude `/paper-wiki:wiki-compile`；Codex `$paper-wiki:paper-wiki compile` |
+| 搜论文 | `/wiki-search-latest <主题>` | `$paper-wiki-project wiki-search-latest <主题>` | Claude `/paper-wiki:wiki-search-latest`；Codex `$paper-wiki:paper-wiki search` |
+| 审查 | `/wiki-critique <文件>` | `$paper-wiki-project wiki-critique <文件>` | Claude `/paper-wiki:wiki-critique`；Codex `$paper-wiki:paper-wiki critique` |
+| 构思 | `/wiki-ideate <gap>` | `$paper-wiki-project wiki-ideate <gap>` | Claude `/paper-wiki:wiki-ideate`；Codex `$paper-wiki:paper-wiki ideate` |
+| 查询/教学 | `/wiki-teach <问题>` | `$paper-wiki-project wiki-teach <问题>` | Claude `/paper-wiki:wiki-teach`；Codex `$paper-wiki:paper-wiki teach` |
 
 Codex 也支持自然语言，例如：“按 paper-wiki 的 `wiki-compile` action 编译新材料”。
 `wiki-teach` 是 paper-wiki 自带的中立查询 action，不依赖两端另装 `/teach`。
